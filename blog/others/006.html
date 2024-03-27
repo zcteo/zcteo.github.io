@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>双系统修复 Linux 引导 闻道</title>
+  <meta name="title" content="双系统修复 Linux 引导 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="双系统修复 Linux 引导 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/others/006" />
+  <meta property="og:title" content="双系统修复 Linux 引导 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/others/006" />
+  <meta property="twitter:title" content="双系统修复 Linux 引导 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/others/006" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="双系统修复-linux-引导">双系统修复 Linux 引导</h1>
+
+<p>[TOC]</p>
+
+<h2 id="前言">前言</h2>
+
+<p>众所周知啊，要装 Windows 和 Linux 双系统的话，是需要先装 Windows 再装 Linux；因为 Windows Boot Manager 不会去引导 Linux 系统，而 Grub 会去引导 Windows 系统，所以后装 Linux 的话，就可以使用 Grub 引导 Windows，而后装 Windows 的话，Windows Boot Manager 就引导不了 Windows。</p>
+
+<p>但是，凡事都有意外；万一我本来就是 Linux，想再装一个 Windows，那犯不着整个 Linux 也重装吧。又或者某些原因需要重装 Windows，那 Grub 引导也会失效，怎么办？安排</p>
+
+<h2 id="准备一个启动盘">准备一个启动盘</h2>
+
+<p>我这里直接用的 Ubuntu 的 LiveCD 做的 U 盘启动盘，进去之后选择 Try Ubuntu</p>
+
+<h2 id="挂载分区">挂载分区</h2>
+
+<p>找到当初安装时候的分区方案，挂载起来</p>
+
+<ol>
+  <li>
+    <p>切换到root用户</p>
+
+    <p><code class="highlighter-rouge">sudo -i</code></p>
+  </li>
+  <li>
+    <p>查看分区情况</p>
+
+    <p><code class="highlighter-rouge">fdisk -l</code></p>
+
+    <p>输出如下</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Disk /dev/nvme0n1：953.89 GiB，1024209543168 字节，2000409264 个扇区
+Disk model: SAMSUNG MZVLB1T0HBLR-000L7              
+单元：扇区 / 1 <span class="k">*</span> 512 <span class="o">=</span> 512 字节
+扇区大小<span class="o">(</span>逻辑/物理<span class="o">)</span>：512 字节 / 512 字节
+I/O 大小<span class="o">(</span>最小/最佳<span class="o">)</span>：512 字节 / 512 字节
+磁盘标签类型：gpt
+磁盘标识符：6469C8AC-C57F-43BA-A804-8E17BFF27E93
+   
+设备                 起点       末尾      扇区   大小 类型
+/dev/nvme0n1p1       2048     647167    645120   315M EFI 系统
+/dev/nvme0n1p2     647168  839507967 838860800   400G Linux 文件系统
+/dev/nvme0n1p3  839507968 1258938367 419430400   200G Linux 文件系统
+/dev/nvme0n1p4 1258938368 1573511167 314572800   150G Linux 文件系统
+/dev/nvme0n1p5 1573511168 1573543935     32768    16M Microsoft 保留
+/dev/nvme0n1p6 1573543936 2000408575 426864640 203.6G Microsoft 基本数据
+</code></pre></div>    </div>
+
+    <p>然后我是 UEFI 启动，所以第一个分区是 EFI 分区，第二个分区是我的根目录</p>
+  </li>
+  <li>
+    <p>挂载根目录</p>
+
+    <p><code class="highlighter-rouge">mount /dev/nvme0n1p2 /mnt</code></p>
+  </li>
+  <li>
+    <p>挂载 Boot 分区，如有</p>
+
+    <p><code class="highlighter-rouge">mount /dev/* /mnt/boot</code></p>
+
+    <p>Boot 单独分区的需要挂载，我这里没有单独分区，所以不需要挂载</p>
+  </li>
+  <li>
+    <p>挂载 EFI 分区，<strong>重要</strong></p>
+
+    <p><code class="highlighter-rouge">mount /dev/nvme0n1p1 /mnt/boot/efi</code></p>
+
+    <p>之前在某度搜索到的方法都没有这一条，然后一直报错，后转某歌才找使用到解决方案</p>
+  </li>
+</ol>
+
+<h2 id="安装-grub-并重启">安装 Grub 并重启</h2>
+
+<ol>
+  <li>
+    <p>挂载相应目录</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mount <span class="nt">--bind</span> /dev /mnt/dev
+mount <span class="nt">--bind</span> /proc /mnt/proc
+mount <span class="nt">--bind</span> /sys /mnt/sys
+mount <span class="nt">--bind</span> /run /mnt/run
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>安装 grub</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grub-install /dev/nvme0n1
+update-grub
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>重启之后就应该能看到熟悉的 Grub了</p>
+  </li>
+</ol>
+
+<h2 id="小结">小结</h2>
+
+<p>之前一直在某度搜索，结果都是大同小异，但是都不是 UEFI 启动的解决方案，某度的解决方案只适用于 BIOS 启动，或者说根本就是一大堆人复制粘贴，也没验证过的东西。</p>
+
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

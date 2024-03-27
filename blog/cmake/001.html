@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>CMake 安装 闻道</title>
+  <meta name="title" content="CMake 安装 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="CMake 安装 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/cmake/001" />
+  <meta property="og:title" content="CMake 安装 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/cmake/001" />
+  <meta property="twitter:title" content="CMake 安装 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/cmake/001" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="cmake-安装">CMake 安装</h1>
+
+<p>[toc]</p>
+
+<h2 id="cmake-是什么">CMake 是什么</h2>
+
+<p>CMake是一个跨平台的安装（编译）工具，可以用简单的语句来描述所有平台的安装(编译过程)。他能够输出各种各样的makefile或者project文件，能测试编译器所支持的C++特性，类似UNIX下的automake。只是 CMake 的组态档取名为 CMakeLists.txt。</p>
+
+<p>Cmake 并不直接建构出最终的软件，而是产生标准的建构档（如 Unix 的 Makefile 或 Windows Visual C++ 的 projects/workspaces），然后再依一般的建构方式使用。这使得熟悉某个集成开发环境（IDE）的开发者可以用标准的方式建构他的软件，这种可以使用各平台的原生建构系统的能力是 CMake 和 SCons 等其他类似系统的区别之处。</p>
+
+<h2 id="为什么使用-cmake">为什么使用 CMake</h2>
+
+<p>跨平台、语法比 makefile 简洁，且现在大量 C++ 开源项目使用 CMake 构建，KDE 项目也是使用 CMake 构建</p>
+
+<h2 id="cmake安装">CMake安装</h2>
+
+<p>Linux发行版可直接使用包管理器下载，如 Ubuntu 可直接使用 <code class="highlighter-rouge">apt install cmake</code> 下载安装</p>
+
+<h3 id="下载">下载</h3>
+
+<p><a href="https://cmake.org/download/">https://cmake.org/download/</a></p>
+
+<p><img src="img/001/01.png" alt="CMake下载页面" /></p>
+
+<p>CMake 官网提供了源码和二进制包</p>
+
+<h3 id="二进制压缩包安装">二进制压缩包安装</h3>
+
+<p>下载下来的压缩包解压到安装目录</p>
+
+<p>将 bin 目录添加到环境变量</p>
+
+<h3 id="源码安装">源码安装</h3>
+
+<h4 id="安装依赖库">安装依赖库</h4>
+
+<p>目前我这就缺 OpenSSL</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>libssl-dev
+</code></pre></div></div>
+
+<h4 id="没有老版本cmake">没有老版本CMake</h4>
+
+<p>解压并在目录内打开命令行窗口，依次执行</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./bootstrap
+make
+<span class="nb">sudo </span>make <span class="nb">install</span>
+</code></pre></div></div>
+
+<p>cmake 会默认安装在 /usr/local/bin 下面
+要改变安装路径，在 bootstrap 命令后加上 ‘–prefix=PATH’ 选项。</p>
+
+<h4 id="有以前版本cmake">有以前版本CMake</h4>
+
+<p>解压并在目录内打开命令行窗口，依次执行</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake 
+make
+<span class="nb">sudo </span>make <span class="nb">install</span>
+</code></pre></div></div>
+
+<p>cmake 会默认安装在 /usr/local/bin 下面
+要改变安装路径，在 cmake 命令后加上 ‘-DCMAKE_INSTALL_PREFIX=PATH’ 选项。</p>
+
+<h3 id="验证安装是否成功">验证安装是否成功</h3>
+
+<p>打开命令行窗口，输入 <code class="highlighter-rouge">cmake --version</code></p>
+
+<p>输出 cmake version x.x.x 即表示安装成功</p>
+
+<h2 id="实例">实例</h2>
+
+<h3 id="cmake-版-hello-world">CMake 版 Hello World</h3>
+
+<p><strong>源文件</strong></p>
+
+<p>CMakeLists.txt</p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># 要求的CMake最小版本</span>
+<span class="nb">cmake_minimum_required</span><span class="p">(</span>VERSION 3.12<span class="p">)</span>
+<span class="c1"># 项目名称</span>
+<span class="nb">project</span><span class="p">(</span>Hello<span class="p">)</span>
+<span class="c1"># C++标准</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_CXX_STANDARD 11<span class="p">)</span>
+<span class="c1"># 生成可执行文件</span>
+<span class="nb">add_executable</span><span class="p">(</span><span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span> main.cpp<span class="p">)</span>
+</code></pre></div></div>
+
+<p>main.cpp</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;iostream&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Hello, World!"</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>编译运行</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake <span class="nb">.</span>
+make
+./Hello
+</code></pre></div></div>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

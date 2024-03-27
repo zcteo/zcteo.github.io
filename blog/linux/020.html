@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>交叉编译 nmon 闻道</title>
+  <meta name="title" content="交叉编译 nmon 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="交叉编译 nmon 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/linux/020" />
+  <meta property="og:title" content="交叉编译 nmon 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/linux/020" />
+  <meta property="twitter:title" content="交叉编译 nmon 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/linux/020" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="交叉编译-nmon">交叉编译 nmon</h1>
+
+<p>[TOC]</p>
+
+<h2 id="前言">前言</h2>
+
+<p>由于个人实在是喜欢用 nmon，所以自己也编一个试试</p>
+
+<p>这里记录了一次踩坑的过程，赶时间的请先食用 <a href="#曲线救国">曲线救国</a></p>
+
+<h2 id="环境准备">环境准备</h2>
+
+<h3 id="工具链">工具链</h3>
+
+<p>交叉编译工具链参见 <a href="019_MakeMusl.html">《构建 musl 交叉编译工具链》</a></p>
+
+<p>解压，因为我是在 docker 环境内，就解压到 /root 目录，主机的话请自行斟酌一下</p>
+
+<p>设置 PATH</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/root/aarch64-linux_x64-musl-cross/bin
+</code></pre></div></div>
+
+<h3 id="第三方库-ncurses">第三方库 ncurses</h3>
+
+<p>nmon 依赖 libncurses.so 库</p>
+
+<p>查看板子上是否有 libncurses.so 库，如果有，就下载对应版本的源码交叉编译，编译完成后就不替换原有版本；如果没有，就随便下载一个版本</p>
+
+<h4 id="源码下载">源码下载</h4>
+
+<p><a href="https://ftp.gnu.org/pub/gnu/ncurses/">https://ftp.gnu.org/pub/gnu/ncurses/</a></p>
+
+<p>我的板子上有 6.3，我就下载 6.3 的源码</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wget https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.3.tar.gz
+</code></pre></div></div>
+
+<h4 id="编译">编译</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./configure <span class="nt">--prefix</span><span class="o">=</span>/root/ncurses <span class="nt">--host</span><span class="o">=</span>aarch64-linux-musl <span class="nt">--with-shared</span>
+make <span class="nt">-j</span>
+make <span class="nb">install</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">--prefix</span> <span class="c"># 指定生成文件的路径</span>
+<span class="nt">--host</span> <span class="c"># 指定的是交叉编译工具链的前缀</span>
+<span class="nt">--with-shared</span> <span class="c"># 生成动态库</span>
+</code></pre></div></div>
+
+<h2 id="编译-nmon">编译 nmon</h2>
+
+<h3 id="源码下载-1">源码下载</h3>
+
+<p>https://nmon.sourceforge.io/pmwiki.php?n=Site.CompilingNmon</p>
+
+<p>我这就下载目前最新的版本了</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wget https://sourceforge.net/projects/nmon/files/lmon16p.c
+</code></pre></div></div>
+
+<h3 id="编译-1">编译</h3>
+
+<p>如果赶时间的，请直接跳过这一章，直接到<a href="#曲线救国">曲线救国</a>；因为这编译有问题没搞定</p>
+
+<h4 id="编译-2">编译</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>aarch64-linux-musl-gcc lmon16p.c <span class="nt">-o</span> nmon <span class="nt">-I</span> /root/ncurses/include/ncurses <span class="nt">-I</span> /root/ncurses/include <span class="nt">-L</span> /root/ncurses/lib/ <span class="nt">-lncurses</span> <span class="nt">-lm</span>
+</code></pre></div></div>
+
+<p>不出意外的话，现在就出意外了</p>
+
+<p>报错如下</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lmon16p.c:588:10: fatal error: fstab.h: No such file or directory
+</code></pre></div></div>
+
+<p>谷歌了一番之后，发现 musl 压根没有 fstab.h 这个文件，而且在板子上搜了一下，确实也没有这个文件，我能怎么办，很绝望啊，有木有，然后在正常 Linux 主机上打开 fstab.h，发现这里面引入的东西，好像 nmon 源码里面都没有使用耶，那就把这个行代码屏蔽了</p>
+
+<h4 id="再编译">再编译</h4>
+
+<p>然后也不出意外的出意外了，这次报错更多了</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lmon16p.c: In <span class="k">function</span> <span class="s1">'read_vmstat'</span>:
+ 1502 | <span class="c">#define GETVM(variable) p-&gt;vm.variable = get_vm_value(__STRING(variable) );</span>
+      |                                                       ^~~~~~~~
+lmon16p.c:1512:5: note: <span class="k">in </span>expansion of macro <span class="s1">'GETVM'</span>
+ 1512 |     GETVM<span class="o">(</span>nr_dirty<span class="o">)</span><span class="p">;</span>
+      |     ^~~~~
+lmon16p.c:1512:11: error: <span class="s1">'nr_dirty'</span> undeclared <span class="o">(</span>first use <span class="k">in </span>this <span class="k">function</span><span class="o">)</span>
+ 1512 |     GETVM<span class="o">(</span>nr_dirty<span class="o">)</span><span class="p">;</span>
+      |           ^~~~~~~~
+lmon16p.c:1502:64: note: <span class="k">in </span>definition of macro <span class="s1">'GETVM'</span>
+ 1502 | <span class="c">#define GETVM(variable) p-&gt;vm.variable = get_vm_value(__STRING(variable) );</span>
+      |                                                                ^~~~~~~~
+</code></pre></div></div>
+
+<p>还有很长很长一段报错，后面就不贴出来了；这时候真就很绝望，Google 也搜到相同的报错了，但是都没有解决方案</p>
+
+<h4 id="尝试编译其他架构">尝试编译其他架构</h4>
+
+<p><strong>本机编译</strong></p>
+
+<p>使用本机 gcc 直接编译本机版本</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gcc lmon16p.c <span class="nt">-lncurses</span> <span class="nt">-lm</span>
+</code></pre></div></div>
+
+<p>这完全行得通啊，而且也能运行，拿到是我交叉编译的姿势不对？</p>
+
+<p>那就继续换一个交叉编译工具链试试</p>
+
+<h2 id="曲线救国">曲线救国</h2>
+
+<h3 id="使用-gnu-工具链">使用 gnu 工具链</h3>
+
+<p>工具链，我最相信的还是 linaro，但是他们的最新版本只有7.5，往后的只能在 arm 官网下载</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wget https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+</code></pre></div></div>
+
+<p>使用新的工具链重新编译 ncurses，编译方法请往前翻一翻</p>
+
+<p>经验证 ARM 官网提供的工具链也是 OK 的</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wget https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz
+</code></pre></div></div>
+
+<p>链接：<a href="https://www.linaro.org/downloads/">linaro下载页</a>  <a href="https://developer.arm.com/downloads/-/gnu-a">ARM下载页</a></p>
+
+<h3 id="编译-3">编译</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>aarch64-linux-gnu-gcc lmon16p.c <span class="nt">-o</span> nmon <span class="nt">-I</span> /root/ncurses/include/ncurses <span class="nt">-I</span> /root/ncurses/include <span class="nt">-L</span> /root/ncurses/lib/ <span class="nt">-lncurses</span> <span class="nt">-lm</span>
+</code></pre></div></div>
+
+<p>这个编译成功了，但是肯定是不能在板子上运行的，我突然想到了 patchelf 工具，结果还真行</p>
+
+<h3 id="patchelf">patchelf</h3>
+
+<p><strong>安装</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>patchelf
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">patchelf -h</code> 看到可以改 interpreter，真是天助我也，这机缘巧合之下，不就把事办成了吗？？？还有谁</p>
+
+<p><strong>打个 patch</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>patchelf <span class="nt">--set-interpreter</span> /lib/ld-musl-aarch64.so.1 nmon
+</code></pre></div></div>
+
+<h2 id="小结">小结</h2>
+
+<p>这次这曲线救国我是真没想到，当然也可能是我对 musl 的了解太少</p>
+
+<p>那言外之意就是：根本不需要 musl 工具链，使用正常工具链，然后打个 patch 不就完事了，还折腾这么久</p>
+
+<h2 id="附件">附件</h2>
+
+<p><a href="/pages-assitant/Linux/020/nmon">nmon</a></p>
+
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

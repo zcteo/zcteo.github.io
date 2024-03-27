@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>Docker 安装与使用 闻道</title>
+  <meta name="title" content="Docker 安装与使用 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="Docker 安装与使用 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/docker/001" />
+  <meta property="og:title" content="Docker 安装与使用 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/docker/001" />
+  <meta property="twitter:title" content="Docker 安装与使用 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/docker/001" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="docker-安装与使用">Docker 安装与使用</h1>
+
+<p>[TOC]</p>
+
+<h2 id="国内镜像加速配置">国内镜像加速配置</h2>
+
+<ol>
+  <li>
+    <p><a href="https://www.daocloud.io/mirror">DaoCloud</a></p>
+
+    <p><em>目前好像不太行了 - 2020年8月2日</em></p>
+  </li>
+  <li>
+    <p>创建或修改 /etc/docker/daemon.json 文件</p>
+
+    <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"registry-mirrors"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"https://registry.docker-cn.com"</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>    </div>
+
+    <blockquote>
+      <p>可直接使用的镜像链接：</p>
+
+      <p>docker中国：https://registry.docker-cn.com</p>
+
+      <p>网易：http://hub-mirror.c.163.com</p>
+
+      <p>中科大：https://docker.mirrors.ustc.edu.cn</p>
+
+      <hr />
+
+      <p>阿里云容器服务
+<a href="https://cr.console.aliyun.com/">https://cr.console.aliyun.com/</a>
+首页点击”创建我的容器镜像“，得到一个专属的镜像加速地址</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="基本命令">基本命令</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 安装</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>docker.io
+<span class="nb">sudo </span>docker images    <span class="c">#列出所有的本地镜像</span>
+<span class="nb">sudo </span>docker ps <span class="nt">-a</span>     <span class="c">#列出所有的本地容器</span>
+<span class="nb">sudo </span>docker run       <span class="c">#运行容器</span>
+    <span class="c"># -it 互动模式</span>
+    <span class="c"># -d 离线模式</span>
+    <span class="c"># --name  指定名称</span>
+    <span class="c"># --net  netname 指定net</span>
+    <span class="c"># --restart=always  服务器重启跟随启动</span>
+    <span class="c"># -e  ename 指定环境变量</span>
+    <span class="c"># -p  指定端口映射</span>
+    <span class="c"># -P  随机端口映射</span>
+<span class="nb">sudo </span>docker start   <span class="c">#启动已经存在的容器</span>
+<span class="nb">sudo </span>docker stop     <span class="c">#停止指定的容器</span>
+<span class="nb">sudo </span>docker pull     <span class="c">#拉取镜像</span>
+<span class="nb">sudo </span>docker rmi      <span class="c">#删除镜像</span>
+<span class="nb">sudo </span>docker image prune <span class="nt">-af</span> <span class="c">#删除所有未使用镜像</span>
+<span class="nb">sudo </span>docker <span class="nb">rm</span>       <span class="c">#删除容器 参数为容器名字或容器ID</span>
+    <span class="c"># $(sudo docker ps -aq) 删除所有容器</span>
+<span class="nb">sudo </span>docker search   <span class="c">#查找镜像</span>
+<span class="nb">sudo </span>docker <span class="nb">exec</span> <span class="nt">-it</span> <span class="c">#以互动模式进入容器</span>
+<span class="nb">sudo </span>docker logs <span class="nt">-f</span>  <span class="c">#查看指定容器的日志</span>
+<span class="nb">sudo </span>docker build <span class="nt">-t</span> name:latest <span class="nb">.</span> <span class="c">#在当前目录根据Dockerfile创建名为name的镜像</span>
+<span class="nb">sudo </span>docker container update <span class="nt">--restart</span> always <span class="c">#更改restart策略</span>
+</code></pre></div></div>
+
+<h2 id="网络相关">网络相关</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 默认为bridge模式</span>
+<span class="nb">sudo </span>docker network create
+<span class="nb">sudo </span>docker network connect
+<span class="nb">sudo </span>docker network disconnect
+<span class="nb">sudo </span>docker network <span class="nb">ls
+sudo </span>docker network <span class="nb">rm
+sudo </span>docker network inspect
+</code></pre></div></div>
+
+<h2 id="docker-saveexport">Docker save/export</h2>
+
+<p>docker save 用来将一个或多个image打包保存。</p>
+
+<p>docker save 也可以打包container，保存的是容器背后的image.</p>
+
+<p>如：将本地镜像库中的image1和image2打包到images.tar中</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker save <span class="nt">-o</span> images.tar  image1:v1 image2:v1
+<span class="c"># 保存的时候压缩</span>
+docker save image1:v1 image2:v1 | <span class="nb">gzip</span> <span class="o">&gt;</span> images.tar.gz
+</code></pre></div></div>
+
+<p>docker load用于将打包的tar中包含的镜像load到本地镜像库，但不能重命名其中的镜像名。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker load <span class="nt">-i</span> images.tar
+<span class="c"># load压缩镜像</span>
+<span class="nb">gzip</span> <span class="nt">-c</span> images.tar.gz | docker load 
+</code></pre></div></div>
+
+<p>docker export 打包 container 文件系统</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker <span class="nb">export</span> <span class="nt">-o</span> thecontainer.tar container_name
+</code></pre></div></div>
+
+<p>使用 docker import 载入，可以为新镜像指定name和tag</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker import thecontainer.tar newimagename:tag
+</code></pre></div></div>
+
+<h2 id="docker部署常用应用命令">Docker部署常用应用命令</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 新建net</span>
+<span class="nb">sudo </span>docker network create mynet
+<span class="c"># 部署MySQL</span>
+<span class="c"># 创建MySQL容器</span>
+<span class="nb">sudo </span>docker run <span class="nt">--name</span> mysql <span class="nt">--net</span> mynet <span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>123 <span class="nt">-p</span> 3307:3306 <span class="nt">-d</span> mysql:5.7
+<span class="c"># 进入MySQL容器</span>
+<span class="nb">sudo </span>docker <span class="nb">exec</span> <span class="nt">-it</span> mysql bash
+<span class="c"># 赋权</span>
+grant all on <span class="k">*</span>.<span class="k">*</span> to <span class="s1">'root'</span>@<span class="s1">'%'</span> identified by <span class="s1">'123'</span><span class="p">;</span>
+<span class="c"># 刷新权限</span>
+flush privileges<span class="p">;</span>
+<span class="c"># 部署zookeeper</span>
+<span class="nb">sudo </span>docker run <span class="nt">-d</span> <span class="nt">--name</span> zookeeper <span class="nt">--net</span> mynet <span class="nt">-p2181</span>:2181 <span class="nt">-p2888</span>:2888 <span class="nt">-p3888</span>:3888 zookeeper
+<span class="c"># 部署dubboadmin</span>
+<span class="c"># 一定注意加反斜杠</span>
+<span class="nb">sudo </span>docker run <span class="nt">-d</span> <span class="nt">--name</span> dubbo-admin <span class="nt">--net</span> mynet <span class="nt">-p9600</span>:8080 <span class="nt">-e</span> <span class="nv">DUBBO_REGISTRY</span><span class="o">=</span><span class="s2">"zookeeper:</span><span class="se">\/\/</span><span class="s2">zookeeper:2181"</span> <span class="nt">-e</span> <span class="nv">DUBBO_ROOT_PASSWORD</span><span class="o">=</span>root riveryang/dubbo-admin
+<span class="c"># 部署sbjar</span>
+<span class="nb">sudo </span>docker run <span class="nt">-d</span> <span class="nt">--name</span> core <span class="nt">-p8081</span>:8081 <span class="nt">--net</span> mynet core
+<span class="nb">sudo </span>docker run <span class="nt">-d</span> <span class="nt">--name</span> store <span class="nt">-p8080</span>:8080 <span class="nt">--net</span> mynet store
+</code></pre></div></div>
+
+<h2 id="dockerfile">Dockerfile</h2>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 基础镜像</span>
+<span class="k">FROM</span><span class="s"> openjdk:8-jdk-alpine</span>
+
+<span class="c"># 设置工作目录</span>
+<span class="k">WORKDIR</span><span class="s"> /tmp</span>
+
+<span class="c"># 将当前目录jar文件拷贝到镜像中名为app.jar</span>
+<span class="k">ADD</span><span class="s"> *.jar app.jar</span>
+
+<span class="c"># springboot使用的配置文件</span>
+<span class="k">ENV</span><span class="s"> spring.profiles.active=docker</span>
+
+<span class="c"># 进入时执行的命令，jvm设置为东八区</span>
+<span class="k">ENTRYPOINT</span><span class="s"> ["java","-Duser.timezone=GMT+8","-jar","/tmp/app.jar"]</span>
+</code></pre></div></div>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

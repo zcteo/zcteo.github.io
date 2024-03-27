@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>C 可变参数宏 闻道</title>
+  <meta name="title" content="C 可变参数宏 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="C 可变参数宏 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/cpp/005" />
+  <meta property="og:title" content="C 可变参数宏 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/cpp/005" />
+  <meta property="twitter:title" content="C 可变参数宏 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/cpp/005" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="c-可变参数宏">C 可变参数宏</h1>
+
+<p>[toc]</p>
+
+<h2 id="引言">引言</h2>
+
+<p>在看 <a href="https://github.com/nlohmann/json">JSON for Modern C++</a> 的源码时，看到有可变参数宏的使用，觉得这是个好东西，遂研究之。</p>
+
+<h2 id="收集资料">收集资料</h2>
+
+<p>经过一番百度后，大概只能搜到以下用法</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#define PRINTF(...) printf(__VA_ARGS__)
+</span>
+<span class="n">PRINTF</span><span class="p">(</span><span class="s">"Foo %d Bar %d"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>或者这种用法</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#define ERROR(...) \
+fprintf(stderr, "File: %s, Line: %d\n", __FILE__, __LINE__); \
+fprintf(stderr, __VA_ARGS__)
+</span>
+<span class="n">ERROR</span><span class="p">(</span><span class="s">"Error NO.%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="mi">9</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>夺笋啊！这个不就是套娃吗？把可变参数宏转给可变参数函数，那我还研究什么可变参数宏，我直接去研究可变参数函数好了。果然百度没啥用。</p>
+
+<p>还好，机缘巧合之下找到了一篇文章，看了之后豁然开朗：<a href="https://blog.csdn.net/lmhuanying1012/article/details/78715351">https://blog.csdn.net/lmhuanying1012/article/details/78715351</a></p>
+
+<h2 id="进入正题">进入正题</h2>
+
+<p>可变参数宏是 C99 规范中新增的，编译器会把 <code class="highlighter-rouge">…</code> 保存在预定义宏 <code class="highlighter-rouge">__VA_ARGS__</code> 中，这样预定义宏 <code class="highlighter-rouge">__VA_ARGS__</code>  就可以被用在替换部分中，替换省略号所代表的字符串。就是宏替换的时候 <code class="highlighter-rouge">__VA_ARGS__</code>  会代表省略号 <code class="highlighter-rouge">…</code> 的内容。</p>
+
+<p>然后参考上面提到的 json 中的用法，写出了如下宏定义</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#define PRINT(...) std::cout \
+GET_MACRO(__VA_ARGS__, OUTPUT5, OUTPUT4, OUTPUT3, OUTPUT2, OUTPUT1, ...)(__VA_ARGS__) \
+&lt;&lt; std::endl
+</span>
+<span class="cp">#define GET_MACRO(_1, _2, _3, _4, _5, NAME, ...) NAME
+</span>
+<span class="cp">#define OUTPUT1(v1)   &lt;&lt; " " &lt;&lt; v1
+#define OUTPUT2(v1, v2) OUTPUT1(v1) OUTPUT1(v2)
+#define OUTPUT3(v1, v2, v3) OUTPUT1(v1) OUTPUT2(v2, v3)
+#define OUTPUT4(v1, v2, v3, v4) OUTPUT1(v1) OUTPUT3(v2, v3, v4)
+#define OUTPUT5(v1, v2, v3, v4, v5) OUTPUT1(v1) OUTPUT4(v2, v3, v4, v5)
+</span></code></pre></div></div>
+
+<p>使用上述宏</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">PRINT</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="n">PRINT</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+<span class="n">PRINT</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+<span class="n">PRINT</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+<span class="n">PRINT</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+<span class="n">PRINT</span><span class="p">(</span><span class="s">"FOO"</span><span class="p">);</span>
+<span class="n">PRINT</span><span class="p">(</span><span class="s">"FOO"</span><span class="p">,</span> <span class="s">"BAR"</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>以上宏展开为</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">3</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">3</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">3</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="s">"FOO"</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="s">"FOO"</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="s">"BAR"</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="展开过程分析">展开过程分析</h2>
+
+<p>以 <code class="highlighter-rouge">PRINT(1);</code> 和 <code class="highlighter-rouge">PRINT(1, 2, 3);</code> 为例</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">PRINT</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="c1">// 第一步展开</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="n">GET_MACRO</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">OUTPUT5</span><span class="p">,</span> <span class="n">OUTPUT4</span><span class="p">,</span> <span class="n">OUTPUT3</span><span class="p">,</span> <span class="n">OUTPUT2</span><span class="p">,</span> <span class="n">OUTPUT1</span><span class="p">,</span> <span class="p">...)(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="c1">// 先看一下对应</span>
+<span class="c1">// GET_MACRO( 1, OUTPUT5, OUTPUT4, OUTPUT3, OUTPUT2, OUTPUT1, ...)</span>
+<span class="c1">// GET_MACRO(_1,      _2,      _3,      _4,      _5,    NAME, ...) NAME</span>
+<span class="c1">// 替换出来</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="n">OUTPUT1</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="c1">// 最后</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</code></pre></div></div>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">PRINT</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+<span class="c1">// 第一步展开后</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="n">GET_MACRO</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">OUTPUT5</span><span class="p">,</span> <span class="n">OUTPUT4</span><span class="p">,</span> <span class="n">OUTPUT3</span><span class="p">,</span> <span class="n">OUTPUT2</span><span class="p">,</span> <span class="n">OUTPUT1</span><span class="p">,</span> <span class="p">...)(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="c1">// 先看一下对应</span>
+<span class="c1">// GET_MACRO( 1,  2,  3, OUTPUT5, OUTPUT4, OUTPUT3, OUTPUT2, OUTPUT1, ...)</span>
+<span class="c1">// GET_MACRO(_1, _2, _3,      _4,      _5,    NAME, ...) NAME</span>
+<span class="c1">// 替换出来</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="n">OUTPUT3</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="c1">// 后面就不用说了吧</span>
+</code></pre></div></div>
+
+<h2 id="还有一句">还有一句</h2>
+
+<p>几个参数就需要定义几个宏；比如上面的例子，6个参数就会出问题了。可以看一下大神的代码，他定义了64个，非常之壮观</p>
+
+<p><a href="https://github.com/nlohmann/json/blob/b2e784c33bcdda3b58244f5811c89f023cd54715/single_include/nlohmann/json.hpp#L2352-L2484">JSON for Modern C++ 中的可变参数宏定义</a></p>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>QEMU 进行 Arm 仿真开发 闻道</title>
+  <meta name="title" content="QEMU 进行 Arm 仿真开发 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="QEMU 进行 Arm 仿真开发 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/linux/005" />
+  <meta property="og:title" content="QEMU 进行 Arm 仿真开发 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/linux/005" />
+  <meta property="twitter:title" content="QEMU 进行 Arm 仿真开发 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/linux/005" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="qemu-进行-arm-仿真开发">QEMU 进行 Arm 仿真开发</h1>
+
+<p>[toc]</p>
+
+<h2 id="前言">前言</h2>
+
+<h2 id="什么是-qemu">什么是 QEMU</h2>
+
+<p>QEMU 是一套由法布里斯·贝拉(Fabrice Bellard)所编写的以GPL许可证分发源码的模拟处理器，在 GNU/Linux 平台上使用广泛。Bochs，PearPC 等与其类似，但不具备其许多特性，比如高速度及跨平台的特性，通过 KQEMU 这个闭源的加速器，QEMU 能模拟至接近真实电脑的速度。0.9.1 及之前版本的 qemu 可以使用 kqemu 加速器。在 qemu1.0 之后的版本，都无法使用 kqemu，主要利用 qemu-kvm 加速模块，并且加速效果以及稳定性明显比 kqemu 好。（摘自<a href="https://baike.baidu.com/item/QEMU/1311178">百度百科</a>）</p>
+
+<h2 id="为什么要用-qemu">为什么要用 QEMU</h2>
+
+<p>因为<strong>穷</strong>，所以只能玩模拟器咯</p>
+
+<p>主机平台 Ubuntu 20.04</p>
+
+<h2 id="安装-qemu">安装 QEMU</h2>
+
+<h3 id="包管理器安装">包管理器安装</h3>
+
+<p>直接 apt 安装，模拟 Arm 就直接安装 qemu-system-arm 就行；也可以 <code class="highlighter-rouge">sudo apt install qemu-system</code> 安装全部模拟环境</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt <span class="nb">install </span>qemu-system-arm <span class="nt">-y</span>
+</code></pre></div></div>
+
+<h3 id="源码安装">源码安装</h3>
+
+<p>包管理器可以安装，为什么还要这么麻烦使用源码安装呢？这样更有逼格？当然不是，因为包管理器的版本可能会比较老。</p>
+
+<p><strong>安装编译源码需要的环境</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>build-essential pkg-config zlib1g-dev libglib2.0-0 <span class="se">\</span>
+libglib2.0-dev  libsdl1.2-dev libpixman-1-dev libfdt-dev autoconf <span class="se">\</span>
+automake libtool librbd-dev libaio-dev flex bison ninja-build
+</code></pre></div></div>
+
+<p><strong>下载源码</strong></p>
+
+<p><a href="https://download.qemu.org/">https://download.qemu.org/</a></p>
+
+<p><strong>编译安装</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">tar </span>xf qemu-5.2.0-rc4.tar.xz
+<span class="nb">cd </span>qemu-5.2.0-rc4/
+<span class="c"># --target-list选择目标机器的架构;默认是将所有的架构都编译;可通过./configure --help查看支持的架构</span>
+./configure <span class="nt">--target-list</span><span class="o">=</span>arm-softmmu
+<span class="c"># 根据自己CPU选择合适的数字</span>
+make <span class="nt">-j4</span> 
+<span class="nb">sudo </span>make <span class="nb">install</span>
+</code></pre></div></div>
+
+<p>测试安装是否成功</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>qemu-system-arm <span class="nt">--version</span>
+<span class="c"># 成功输出</span>
+QEMU emulator version 5.1.94
+Copyright <span class="o">(</span>c<span class="o">)</span> 2003-2020 Fabrice Bellard and the QEMU Project developers
+</code></pre></div></div>
+
+<h2 id="安装交叉编译工具链">安装交叉编译工具链</h2>
+
+<h3 id="包管理器安装-1">包管理器安装</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>gcc-arm-linux-gnueabihf
+<span class="nb">sudo </span>apt <span class="nb">install </span>g++-arm-linux-gnueabihf
+</code></pre></div></div>
+
+<h3 id="linaro-安装">linaro 安装</h3>
+
+<p><a href="https://releases.linaro.org/components/toolchain/binaries/">https://releases.linaro.org/components/toolchain/binaries/</a></p>
+
+<h2 id="编译-uboot-并仿真">编译 uboot 并仿真</h2>
+
+<h3 id="下载源码">下载源码</h3>
+
+<p><a href="https://ftp.denx.de/pub/u-boot/">https://ftp.denx.de/pub/u-boot/</a></p>
+
+<h3 id="编译">编译</h3>
+
+<p>查看编译配置</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls </span>configs/
+</code></pre></div></div>
+
+<p>这里我们选择 vexpress_ca9x4_defconfig</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make vexpress_ca9x4_defconfig
+<span class="c"># 指定编译器为 arm-linux-gnueabihf-</span>
+make <span class="nv">ARCH</span><span class="o">=</span>arm <span class="nv">CROSS_COMPILE</span><span class="o">=</span>arm-linux-gnueabihf- <span class="nt">-j4</span>
+</code></pre></div></div>
+
+<h3 id="仿真">仿真</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>qemu-system-arm <span class="nt">-M</span> vexpress-a9 <span class="nt">-m</span> 256 <span class="nt">-kernel</span> u-boot <span class="nt">-nographic</span>
+</code></pre></div></div>
+
+<p><img src="img/005/01.png" alt="01" /></p>
+
+<p>按<code class="highlighter-rouge">Ctrl+Shift+a 后按 x</code>退出 qemu</p>
+
+<h2 id="编译内核并仿真">编译内核并仿真</h2>
+
+<p><strong>编译内核可以参考另一篇文章 <a href="003_CompileKernel.html">《Linux_x86_64 内核编译》</a></strong></p>
+
+<h3 id="下载源码-1">下载源码</h3>
+
+<p><a href="https://www.kernel.org/">https://www.kernel.org/</a></p>
+
+<p>我这里下载的是 5.10.7</p>
+
+<h3 id="编译-1">编译</h3>
+
+<p><strong>解压</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">tar </span>xvf linux-5.10.7.tar.xz
+<span class="nb">cd </span>linux-5.10.7/
+</code></pre></div></div>
+
+<p><strong>查看编译帮助</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make <span class="nv">ARCH</span><span class="o">=</span>arm <span class="nb">help</span>
+</code></pre></div></div>
+
+<p><strong>查看配置</strong></p>
+
+<p>编译帮助里面也可以看到配置</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls arch</span>/arm/configs/
+</code></pre></div></div>
+
+<p><img src="img/005/02.png" alt="02" /></p>
+
+<p><strong>配置</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make <span class="nv">ARCH</span><span class="o">=</span>arm vexpress_defconfig
+<span class="c"># 可选，上一步执行之后一般默认就行</span>
+make <span class="nv">ARCH</span><span class="o">=</span>arm menuconfig
+</code></pre></div></div>
+
+<p><img src="img/005/03.png" alt="03" /></p>
+
+<p><strong>编译</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make <span class="nv">ARCH</span><span class="o">=</span>arm <span class="nv">CROSS_COMPILE</span><span class="o">=</span>arm-linux-gnueabihf- <span class="nt">-j4</span>
+</code></pre></div></div>
+
+<p>编译完成</p>
+
+<p><img src="img/005/04.png" alt="04" /></p>
+
+<h3 id="仿真-1">仿真</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>qemu-system-arm <span class="nt">-M</span> vexpress-a9 <span class="se">\</span>
+<span class="nt">-m</span> 256M <span class="se">\</span>
+<span class="nt">-kernel</span> <span class="nb">arch</span>/arm/boot/zImage <span class="se">\</span>
+<span class="nt">-dtb</span> <span class="nb">arch</span>/arm/boot/dts/vexpress-v2p-ca9.dtb <span class="se">\</span>
+<span class="nt">-nographic</span>
+</code></pre></div></div>
+
+<p>会停在加载文件系统那里</p>
+
+<p><img src="img/005/05.png" alt="05" /></p>
+
+<h2 id="busybox-制作rootfs-并仿真">busybox 制作rootfs 并仿真</h2>
+
+<h3 id="下载源码-2">下载源码</h3>
+
+<p><a href="https://busybox.net/">https://busybox.net/</a></p>
+
+<h3 id="编译-2">编译</h3>
+
+<p><strong>配置</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make <span class="nv">ARCH</span><span class="o">=</span>arm defconfig
+make <span class="nv">ARCH</span><span class="o">=</span>arm menuconfig
+</code></pre></div></div>
+
+<p>勾选 Settings -&gt; Build static binary</p>
+
+<p><img src="img/005/06.png" alt="06" /></p>
+
+<p><strong>编译</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make <span class="nv">ARCH</span><span class="o">=</span>arm <span class="nv">CROSS_COMPILE</span><span class="o">=</span>arm-linux-gnueabihf- <span class="nt">-j4</span>
+</code></pre></div></div>
+
+<h3 id="仿真-2">仿真</h3>
+
+<p><strong>制作镜像文件</strong></p>
+
+<p>在 busybox 目录下建立如下 shell 文件</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/sh</span>
+<span class="nv">tmpfs</span><span class="o">=</span>/_tmpfs
+
+<span class="c"># 如果存在删除</span>
+<span class="nb">sudo rm</span> <span class="nt">-rf</span> rootfs
+<span class="nb">sudo rm</span> <span class="nt">-rf</span> <span class="k">${</span><span class="nv">tmpfs</span><span class="k">}</span>
+<span class="nb">sudo rm</span> <span class="nt">-f</span> rootfs.ext4
+
+<span class="nb">sudo mkdir </span>rootfs
+<span class="c"># 拷贝 _install 中文件 到 rootfs</span>
+<span class="nb">sudo cp </span>_install/<span class="k">*</span>  rootfs/ <span class="nt">-raf</span>
+
+<span class="nb">cd </span>rootfs <span class="o">&amp;&amp;</span> <span class="nb">sudo mkdir</span> <span class="nt">-p</span> lib proc sys tmp root var mnt <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+
+<span class="nb">sudo cp </span>examples/bootfloppy/etc rootfs/ <span class="nt">-arf</span>
+<span class="nb">sudo sed</span> <span class="nt">-r</span>  <span class="s2">"/askfirst/ s/.*/::respawn:-</span><span class="se">\/</span><span class="s2">bin</span><span class="se">\/</span><span class="s2">sh/"</span> rootfs/etc/inittab <span class="nt">-i</span>
+<span class="nb">sudo mkdir</span> <span class="nt">-p</span> rootfs/dev/
+<span class="nb">sudo mknod </span>rootfs/dev/tty1 c 4 1
+<span class="nb">sudo mknod </span>rootfs/dev/tty2 c 4 2pro
+<span class="nb">sudo mknod </span>rootfs/dev/tty3 c 4 3
+<span class="nb">sudo mknod </span>rootfs/dev/tty4 c 4 4
+<span class="nb">sudo mknod </span>rootfs/dev/console c 5 1
+<span class="nb">sudo mknod </span>rootfs/dev/null c 1 3
+
+<span class="nb">sudo dd </span><span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>rootfs.ext4 <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span>128
+<span class="nb">sudo </span>mkfs.ext4 rootfs.ext4
+<span class="nb">sudo mkdir</span> <span class="nt">-p</span> <span class="k">${</span><span class="nv">tmpfs</span><span class="k">}</span>
+<span class="nb">sudo chmod </span>777 <span class="k">${</span><span class="nv">tmpfs</span><span class="k">}</span>
+<span class="nb">sudo </span>mount rootfs.ext4 <span class="k">${</span><span class="nv">tmpfs</span><span class="k">}</span>/
+<span class="nb">sudo cp</span> <span class="nt">-r</span> rootfs/<span class="k">*</span>  <span class="k">${</span><span class="nv">tmpfs</span><span class="k">}</span>/
+<span class="nb">sudo </span>umount <span class="k">${</span><span class="nv">tmpfs</span><span class="k">}</span>
+<span class="nb">sudo rm</span> <span class="nt">-rf</span> <span class="k">${</span><span class="nv">tmpfs</span><span class="k">}</span>
+</code></pre></div></div>
+
+<p><strong>仿真</strong></p>
+
+<p>注意自己文件存放位置</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>qemu-system-arm <span class="nt">-M</span> vexpress-a9 <span class="se">\</span>
+<span class="nt">-m</span> 256M <span class="se">\</span>
+<span class="nt">-kernel</span> <span class="nb">arch</span>/arm/boot/zImage <span class="se">\</span>
+<span class="nt">-dtb</span> <span class="nb">arch</span>/arm/boot/dts/vexpress-v2p-ca9.dtb <span class="se">\</span>
+<span class="nt">-nographic</span> <span class="se">\</span>
+<span class="nt">-append</span> <span class="s2">"root=/dev/mmcblk0 rw console=ttyAMA0"</span> <span class="se">\</span>
+<span class="nt">-sd</span> ../busybox-1.33.0/rootfs.ext4 
+</code></pre></div></div>
+
+<p><img src="img/005/07.png" alt="07" /></p>
+
+<h2 id="使用-ubuntu-rootfs">使用 Ubuntu rootfs</h2>
+
+<h3 id="下载">下载</h3>
+
+<p><a href="http://cdimage.ubuntu.com/ubuntu-base/releases/">http://cdimage.ubuntu.com/ubuntu-base/releases/</a></p>
+
+<p>这里下载的是 16.04-armhf</p>
+
+<h3 id="制作为镜像文件">制作为镜像文件</h3>
+
+<p>在下载下来的压缩文件目录下，使用以下脚本</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+<span class="nv">xdir</span><span class="o">=</span><span class="s1">'/tmp/sdir'</span>
+<span class="nv">mdir</span><span class="o">=</span><span class="s1">'/tmp/mdir'</span>
+<span class="nv">rootfs</span><span class="o">=</span><span class="s1">'ubuntu_rootfs.ext4'</span>
+
+<span class="nb">sudo rm</span> <span class="nt">-f</span> <span class="nv">$rootfs</span>
+<span class="nb">sudo rm</span> <span class="nt">-rf</span> <span class="nv">$xdir</span>
+<span class="nb">sudo rm</span> <span class="nt">-rf</span> <span class="nv">$mdir</span>
+
+<span class="nb">mkdir</span> <span class="nt">-p</span> <span class="nv">$xdir</span> <span class="nv">$mdir</span>
+<span class="c"># 根据实际情况指定文件</span>
+<span class="nb">sudo tar</span> <span class="nt">-xf</span> ubuntu-base-16.04.6-base-armhf.tar.gz <span class="nt">-C</span> <span class="nv">$xdir</span>/
+<span class="nb">dd </span><span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span><span class="s2">"</span><span class="nv">$rootfs</span><span class="s2">"</span> <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span>256
+<span class="nb">sudo </span>mkfs.ext4 <span class="nv">$rootfs</span>
+<span class="nb">sudo </span>mount <span class="nv">$rootfs</span> <span class="nv">$mdir</span>/
+<span class="nb">sudo cp</span> <span class="nt">-arf</span> <span class="nv">$xdir</span>/<span class="k">*</span> <span class="nv">$mdir</span>/
+
+<span class="c"># 去掉 root 登录密码</span>
+<span class="nb">sudo sed</span> <span class="nt">-i</span> <span class="s1">'s/root:x:0:0:root:/root::0:0:root:/'</span> <span class="nv">$mdir</span>/etc/passwd
+
+<span class="nb">sudo </span>umount <span class="nv">$mdir</span>/
+<span class="nb">sudo rm</span> <span class="nt">-rf</span> <span class="nv">$xdir</span>
+<span class="nb">sudo rm</span> <span class="nt">-rf</span> <span class="nv">$mdir</span>
+
+<span class="nb">printf</span> <span class="s2">"创建 %s%s 成功</span><span class="se">\n\n</span><span class="s2">"</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">pwd</span><span class="si">)</span><span class="s2">"</span> <span class="nv">$rootfs</span>
+<span class="nb">exit </span>0
+</code></pre></div></div>
+
+<h3 id="仿真-3">仿真</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>qemu-system-arm <span class="nt">-M</span> vexpress-a9 <span class="se">\</span>
+<span class="nt">-m</span> 256M <span class="se">\</span>
+<span class="nt">-kernel</span> <span class="nb">arch</span>/arm/boot/zImage <span class="se">\</span>
+<span class="nt">-dtb</span> <span class="nb">arch</span>/arm/boot/dts/vexpress-v2p-ca9.dtb <span class="se">\</span>
+<span class="nt">-append</span> <span class="s2">"root=/dev/mmcblk0 rw"</span> <span class="se">\</span>
+<span class="nt">-sd</span> ../ubuntu_rootfs.ext4
+</code></pre></div></div>
+
+<p><img src="img/005/08.png" alt="image-20210206160443100" /></p>
+
+<p>使用 Remmina 连上取可以登录系统</p>
+
+<p><img src="img/005/09.png" alt="09" /></p>
+
+<p>不知道为什么；这里用之前的方式会启动失败</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>qemu-system-arm <span class="nt">-M</span> vexpress-a9 <span class="se">\</span>
+<span class="nt">-m</span> 256M <span class="se">\</span>
+<span class="nt">-kernel</span> <span class="nb">arch</span>/arm/boot/zImage <span class="se">\</span>
+<span class="nt">-dtb</span> <span class="nb">arch</span>/arm/boot/dts/vexpress-v2p-ca9.dtb <span class="se">\</span>
+<span class="nt">-nographic</span> <span class="se">\</span>
+<span class="nt">-append</span> <span class="s2">"root=/dev/mmcblk0 rw console=ttyAMA0"</span> <span class="se">\</span>
+<span class="nt">-sd</span> ../ubuntu_rootfs.ext4
+</code></pre></div></div>
+
+<p>失败错误如下</p>
+
+<p><img src="img/005/10.png" alt="image-20210206161224744" /></p>
+
+<h2 id="参考文献">参考文献</h2>
+
+<ol>
+  <li><a href="https://www.cnblogs.com/schips/p/12345431.html">基于 QEMU进行 arm 仿真开发 (以 vexpress-a9 为例)</a></li>
+</ol>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

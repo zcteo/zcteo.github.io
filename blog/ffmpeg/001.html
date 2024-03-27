@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>编译 FFmpeg 闻道</title>
+  <meta name="title" content="编译 FFmpeg 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="编译 FFmpeg 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/ffmpeg/001" />
+  <meta property="og:title" content="编译 FFmpeg 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/ffmpeg/001" />
+  <meta property="twitter:title" content="编译 FFmpeg 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/ffmpeg/001" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="编译-ffmpeg">编译 FFmpeg</h1>
+
+<p>[toc]</p>
+
+<h2 id="前言">前言</h2>
+
+<p>最近有使用 FFmpeg 来做视频编解码的工作，需要自己编译 FFmpeg 的源码</p>
+
+<p>目前主要是 H264、H265 编码，同时使用 CUDA 做硬件加速</p>
+
+<p>由于运行环境的硬盘都挺大的，所以就先不做裁剪，以后有需求再做裁剪编译吧</p>
+
+<h2 id="编译环境准备">编译环境准备</h2>
+
+<p>默认认为已经具备基本编译环境，只描述需要额外安装的环境</p>
+
+<p>安装 x86 汇编编译器</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>nasm <span class="nt">-y</span>
+</code></pre></div></div>
+
+<h2 id="源码下载">源码下载</h2>
+
+<h3 id="ffmpeg">FFmpeg</h3>
+
+<p>下载 release 版本</p>
+
+<p><a href="http://www.ffmpeg.org/download.html#releases">http://www.ffmpeg.org/download.html#releases</a></p>
+
+<h3 id="x264">x264</h3>
+
+<p><a href="http://www.videolan.org/developers/x264.html">http://www.videolan.org/developers/x264.html</a></p>
+
+<h3 id="x265">x265</h3>
+
+<p><a href="http://www.videolan.org/developers/x265.html">http://www.videolan.org/developers/x265.html</a></p>
+
+<p>他这个网站不能直接下载，需要组 git 仓库克隆</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://bitbucket.org/multicoreware/x265_git.git
+</code></pre></div></div>
+
+<h3 id="nv-codec-headers">nv-codec-headers</h3>
+
+<p>使用 cuda 编解码需要的头文件</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git
+<span class="nb">cd </span>nv-codec-headers
+make
+<span class="nb">sudo </span>make <span class="nb">install</span>
+</code></pre></div></div>
+
+<p>install 之后在 <code class="highlighter-rouge">/usr/local</code> 路径下</p>
+
+<p>头文件在 <code class="highlighter-rouge">/usr/local/include/ffnvcodec</code></p>
+
+<p>pkg-config文件在 <code class="highlighter-rouge">/usr/local/lib/pkgconfig</code></p>
+
+<h2 id="编译">编译</h2>
+
+<p>x264 和 FFmpeg 都可以通过 <code class="highlighter-rouge">./configure --help</code> 查看编译选项，写得很详细，按需配置</p>
+
+<p>x265 用CMake写的，也没看到有啥说明，就只能手撸</p>
+
+<h3 id="本机编译---x64">本机编译 - x64</h3>
+
+<h4 id="x264-1">x264</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./configure <span class="nt">--prefix</span><span class="o">=</span>/home/zzc/x264 <span class="nt">--enable-shared</span> <span class="nt">--enable-strip</span>
+make <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+make <span class="nb">install</span>
+</code></pre></div></div>
+
+<h4 id="x265-1">x265</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake .. <span class="nt">-DCMAKE_INSTALL_PREFIX</span><span class="o">=</span>/home/zzc/x265
+make <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+make <span class="nb">install</span>
+</code></pre></div></div>
+
+<h4 id="ffmpeg-1">FFmpeg</h4>
+
+<p>需要指定 pkg-config 的搜索路径，不然会搜索到系统的 libx264 和 libx265</p>
+
+<p>不用指定使用 cuda，装了 nv-codec-headers 后会自动检测</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">PKG_CONFIG_PATH</span><span class="o">=</span>/home/zzc/x264/lib/pkgconfig/:/home/zzc/x265/lib/pkgconfig/ ./configure <span class="nt">--prefix</span><span class="o">=</span>/home/zzc/ffmpeg <span class="nt">--enable-gpl</span> <span class="nt">--enable-version3</span> <span class="nt">--disable-doc</span> <span class="nt">--enable-shared</span> <span class="nt">--enable-libx264</span> <span class="nt">--enable-libx265</span>
+make <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+make <span class="nb">install</span>
+</code></pre></div></div>
+
+<p>如果需要全静态库的话，去掉 <code class="highlighter-rouge">--enable-shared</code> 并加上下面的指令</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">--extra-ldflags</span><span class="o">=</span><span class="s2">"-static"</span> <span class="nt">--pkg-config-flags</span><span class="o">=</span><span class="s2">"--static"</span>
+<span class="c"># 不加这个编译出来的自己是静态库，但还是会依赖其他动态库</span>
+</code></pre></div></div>
+
+<h3 id="交叉编译---aarch64">交叉编译 - aarch64</h3>
+
+<h4 id="x264-2">x264</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./configure <span class="nt">--prefix</span><span class="o">=</span>/home/zzc/x264-aarch64 <span class="nt">--enable-shared</span> <span class="nt">--enable-strip</span> <span class="nt">--cross-prefix</span><span class="o">=</span>/opt/tools/cgtools/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- <span class="nt">--host</span><span class="o">=</span>aarch64-linux
+make <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+make <span class="nb">install</span>
+</code></pre></div></div>
+
+<h4 id="x265-2">x265</h4>
+
+<p>交叉编译就不那么简单了，需要自己改交叉编译工具链相关信息，可根据 <code class="highlighter-rouge">build/aarch64-linux/crosscompile.cmake</code>，将里面的编译器路径改为自己的工具链位置</p>
+
+<p>crosscompile.cmake</p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># CMake toolchain file for cross compiling x265 for aarch64</span>
+<span class="nb">set</span><span class="p">(</span>CROSS_COMPILE_ARM 1<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_SYSTEM_NAME Linux<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_SYSTEM_PROCESSOR aarch64<span class="p">)</span>
+
+<span class="c1"># specify the cross compiler</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_C_COMPILER /opt/tools/cgtools/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu//bin/aarch64-none-linux-gnu-gcc<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_CXX_COMPILER /opt/tools/cgtools/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu//bin/aarch64-none-linux-gnu-g++<span class="p">)</span>
+
+<span class="c1"># specify the target environment</span>
+<span class="nf">SET</span><span class="p">(</span>CMAKE_FIND_ROOT_PATH  /opt/tools/cgtools/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu<span class="p">)</span>
+</code></pre></div></div>
+
+<p>编译</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake .. <span class="nt">-DCMAKE_INSTALL_PREFIX</span><span class="o">=</span>/home/zzc/x265-aarch64 <span class="nt">-DCMAKE_TOOLCHAIN_FILE</span><span class="o">=</span>crosscompile.cmake
+make <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+make <span class="nb">install</span>
+</code></pre></div></div>
+
+<p>注：我这里遇到一个问题，直接master分支编译是不可以的，我切换到 tag 3.5 了，然后还改了 cmake 直接加 libdl 和 librt 的链接</p>
+
+<h4 id="ffmpeg-2">FFmpeg</h4>
+
+<p>同样需要指定 pkg-config 的路搜索径；而且还因为配置了 cross-prefix，也需要指定 pkg-config 的可执行文件位置</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">PKG_CONFIG_PATH</span><span class="o">=</span>/home/zzc/x264-aarch64/lib/pkgconfig/:/home/zzc/x265-aarch64/lib/pkgconfig/ ./configure <span class="nt">--prefix</span><span class="o">=</span>/home/zzc/ffmpeg-aarch64 <span class="nt">--enable-gpl</span> <span class="nt">--enable-version3</span> <span class="nt">--disable-static</span> <span class="nt">--disable-doc</span> <span class="nt">--enable-shared</span> <span class="nt">--enable-libx264</span> <span class="nt">--enable-libx265</span> <span class="nt">--arch</span><span class="o">=</span>aarch64 <span class="nt">--target-os</span><span class="o">=</span>linux <span class="nt">--cross-prefix</span><span class="o">=</span>/opt/tools/cgtools/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- <span class="nt">--pkg-config</span><span class="o">=</span>pkg-config
+make <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+make <span class="nb">install</span>
+</code></pre></div></div>
+
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

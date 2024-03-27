@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>安卓 NDK native 方法 crash 定位分析 闻道</title>
+  <meta name="title" content="安卓 NDK native 方法 crash 定位分析 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="安卓 NDK native 方法 crash 定位分析 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/others/002" />
+  <meta property="og:title" content="安卓 NDK native 方法 crash 定位分析 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/others/002" />
+  <meta property="twitter:title" content="安卓 NDK native 方法 crash 定位分析 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/others/002" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="安卓-ndk-native-方法-crash-定位分析">安卓 NDK native 方法 crash 定位分析</h1>
+
+<h2 id="addr2line工具">addr2line工具</h2>
+
+<p>在 ndk/toolchains/aarch64-linux-android-4.9/prebuilt/windows-x86_64/bin 目录下</p>
+
+<h3 id="用法">用法</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>addr2line <span class="o">[</span>OPTIONS] addr <span class="o">[</span>addr ...]
+</code></pre></div></div>
+
+<h3 id="options">OPTIONS</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">-a</span> <span class="nt">--addresses</span>：在函数名、文件和行号信息之前，显示地址，以十六进制形式
+<span class="nt">-b</span> <span class="nt">--target</span><span class="o">=</span>&lt;bfdname&gt;：指定目标文件的格式为 bfdname
+<span class="nt">-e</span> <span class="nt">--exe</span><span class="o">=</span>&lt;executable&gt;：指定需要转换地址的可执行文件名
+<span class="nt">-i</span> <span class="nt">--inlines</span> ： 如果需要转换的地址是一个内联函数，则输出的信息包括其最近范围内的一个非内联函数的信息
+<span class="nt">-j</span> <span class="nt">--section</span><span class="o">=</span>&lt;name&gt;：给出的地址代表指定 section 的偏移，而非绝对地址
+<span class="nt">-p</span> <span class="nt">--pretty-print</span>：使得该函数的输出信息更加人性化：每一个地址的信息占一行
+<span class="nt">-s</span> <span class="nt">--basenames</span>：仅仅显示每个文件名的基址（即不显示文件的具体路径，只显示文件名）
+<span class="nt">-f</span> <span class="nt">--functions</span>：在显示文件名、行号输出信息的同时显示函数名信息
+<span class="nt">-C</span> <span class="nt">--demangle</span><span class="o">[=</span>style]：将低级别的符号名解码为用户级别的名字
+<span class="nt">-h</span> <span class="nt">--help</span>：输出帮助信息
+<span class="nt">-v</span> <span class="nt">--version</span>：输出版本号
+</code></pre></div></div>
+
+<h2 id="定位-crash-代码行号">定位 crash 代码行号</h2>
+
+<h3 id="jni-crash-log-分析">Jni crash log 分析</h3>
+
+<p>Jni crash 会在 DEBUG Tag 输出信息</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>09-08 14:35:53.853 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>: Build fingerprint: <span class="s1">'Android/sdk_google_phone_arm64/generic_arm64:7.1.1/NYC/4252396:userdebug/test-keys'</span>
+09-08 14:35:53.853 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>: Revision: <span class="s1">'0'</span>
+09-08 14:35:53.853 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>: ABI: <span class="s1">'arm64'</span>
+09-08 14:35:53.854 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>: pid: 6867, tid: 6867, name: hxiong.neondemo  <span class="o">&gt;&gt;&gt;</span> com.hxiong.neondemo <span class="o">&lt;&lt;&lt;</span>
+09-08 14:35:53.854 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>: signal 11 <span class="o">(</span>SIGSEGV<span class="o">)</span>, code 1 <span class="o">(</span>SEGV_MAPERR<span class="o">)</span>, fault addr 0x0
+09-08 14:35:53.855 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     x0   0000000000000003  x1   0000000000000000  x2   0000000000000004  x3   0000007ffb9e6980
+09-08 14:35:53.855 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     x4   0000007329c01ad3  x5   0000007ffb9e7360  x6   0000007337196000  x7   fffffffffffffffd
+09-08 14:35:53.855 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     x8   0000000000000003  x9   0000007335738c79  x10  0000000000000058  x11  0101010101010101
+09-08 14:35:53.855 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     x12  000000000ccccccc  x13  000000008000002f  x14  00000073357429e8  x15  000000733574268c
+09-08 14:35:53.855 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     x16  000000733575e2c0  x17  00000073356b8368  x18  00000000ffffffff  x19  ffffffffffffffff
+09-08 14:35:53.855 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     x20  000000000000000e  x21  00000000ffffffff  x22  0000007ffb9e6b60  x23  0000000000000001
+09-08 14:35:53.855 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     x24  0000007329c01ae3  x25  0000000000000003  x26  0000000000000073  x27  0000007ffb9e70b0
+09-08 14:35:53.856 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     x28  6cd7b2dd5dd0d059  x29  0000007ffb9e67a0  x30  0000007335710f64
+09-08 14:35:53.856 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     sp   0000007ffb9e6790  pc   00000073356b83c8  pstate 0000000080000000
+09-08 14:35:54.233 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>: 
+09-08 14:35:54.233 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>: backtrace:
+09-08 14:35:54.234 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     <span class="c">#00 pc 000000000001b3c8  /system/lib64/libc.so (strlen+96)</span>
+09-08 14:35:54.234 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     <span class="c">#01 pc 0000000000073f60  /system/lib64/libc.so (__strlen_chk+16)</span>
+09-08 14:35:54.234 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     <span class="c">#02 pc 000000000005ba18  /system/lib64/libc.so (__vfprintf+6356)</span>
+09-08 14:35:54.234 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     <span class="c">#03 pc 0000000000064be4  /system/lib64/libc.so (vsnprintf+228)</span>
+09-08 14:35:54.235 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     <span class="c">#04 pc 00000000000741a0  /system/lib64/libc.so (__vsnprintf_chk+64)</span>
+09-08 14:35:54.235 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     <span class="c">#05 pc 00000000000057c8  /system/lib64/liblog.so (__android_log_print+148)</span>
+09-08 14:35:54.235 F/DEBUG   <span class="o">(</span> 6893<span class="o">)</span>:     <span class="c">#06 pc 00000000000009a4  /data/app/com.hxiong.neondemo-1/lib/arm64/libneondemo.so</span>
+</code></pre></div></div>
+
+<p>第 5 行 fault addr 0x0 可以看出是空指针异常，寄存器 X1 的值为 0 也可以进一步确认是空指针</p>
+
+<p>第 17-23 行是引起 crash 的调用堆栈，“+” 后面的数字不是行号，是偏移量</p>
+
+<p>第 23 行表示开始 crash，address 为  00000000000009a4</p>
+
+<h3 id="使用-addr2line-定位行号">使用 addr2line 定位行号</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>addr2line <span class="nt">-e</span> libneondemo.so <span class="nt">-f</span> <span class="nt">-C</span>  00000000000009a4
+</code></pre></div></div>
+
+<h2 id="参考文章">参考文章</h2>
+
+<ol>
+  <li>
+    <p><a href="https://www.jianshu.com/p/c2e2b8f8ea0d">ndk addr2line工具的使用</a></p>
+  </li>
+  <li>
+    <p><a href="https://blog.csdn.net/xiongtiancheng/article/details/77899891">addr2line</a></p>
+  </li>
+</ol>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

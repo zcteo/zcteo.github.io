@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>log4cplus 使用 闻道</title>
+  <meta name="title" content="log4cplus 使用 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="log4cplus 使用 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/cpp/006" />
+  <meta property="og:title" content="log4cplus 使用 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/cpp/006" />
+  <meta property="twitter:title" content="log4cplus 使用 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/cpp/006" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="log4cplus-使用">log4cplus 使用</h1>
+
+<h2 id="前言">前言</h2>
+
+<p>log4cplus 是 log4j 的 C++ 实现，提供的接口和使用逻辑与 log4j 基本保持一致；有 log4j 使用经验的人使用 log4cplus 是一件很愉快的事情。</p>
+
+<h2 id="下载编译">下载编译</h2>
+
+<p><strong>下载</strong></p>
+
+<p>源码仓库地址 <a href="https://github.com/log4cplus/log4cplus">https://github.com/log4cplus/log4cplus</a></p>
+
+<p><strong>编译安装</strong></p>
+
+<p>依次执行以下语句</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">tar </span>xvf log4cplus-2.0.6.tar.xz
+<span class="nb">cd </span>log4cplus-2.0.6
+<span class="nb">mkdir </span>build
+<span class="nb">cd </span>build
+cmake ..
+make
+<span class="nb">sudo </span>make <span class="nb">install</span>
+</code></pre></div></div>
+
+<h2 id="log4cplus-主要概念">log4cplus 主要概念</h2>
+
+<p>Logger：记录日志的句柄</p>
+
+<p>Appender：用于指定内容的输出位置，如：控制台，文件、远程服务器等；一个 Logger 可添加多个 Appender，从而向多个地方输出日志。
+Layout：用于指定日志输出的格式；每个 Appender 需要设置一个 Layout</p>
+
+<p>日志等级：FATAL, ERROR, WARN, INFO, DEBUG, TRACE，由高到低</p>
+
+<h2 id="简单使用">简单使用</h2>
+
+<p><strong>使用步骤</strong></p>
+
+<ol>
+  <li>创建 Layout ，并设置输出格式</li>
+  <li>创建 Appender，并指定使用的 Layout</li>
+  <li>获得一个 Logger 实例，并设置其日志输出等级阈值</li>
+  <li>给 Logger 添加 Appender</li>
+  <li>使用宏输出日志</li>
+</ol>
+
+<p><strong>示例</strong></p>
+
+<p>CMakeLists.txt</p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">find_package</span><span class="p">(</span>log4cplus<span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span> log4cplus::log4cplus<span class="p">)</span>
+</code></pre></div></div>
+
+<p>main.cpp</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;iostream&gt;
+#include &lt;log4cplus/log4cplus.h&gt;
+</span>
+<span class="kt">void</span> <span class="nf">log</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">auto</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">log4cplus</span><span class="o">::</span><span class="n">Logger</span><span class="o">::</span><span class="n">getInstance</span><span class="p">(</span><span class="s">"test"</span><span class="p">);</span>
+    <span class="n">LOG4CPLUS_INFO</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">LOG4CPLUS_TEXT</span><span class="p">(</span><span class="s">"fun"</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// 控制台Appender</span>
+    <span class="n">log4cplus</span><span class="o">::</span><span class="n">SharedAppenderPtr</span> <span class="n">consoleAppender</span><span class="p">(</span><span class="k">new</span> <span class="n">log4cplus</span><span class="o">::</span><span class="n">ConsoleAppender</span><span class="p">());</span>
+    <span class="n">consoleAppender</span><span class="o">-&gt;</span><span class="n">setLayout</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">log4cplus</span><span class="o">::</span><span class="n">Layout</span><span class="o">&gt;</span><span class="p">(</span><span class="k">new</span> <span class="n">log4cplus</span><span class="o">::</span><span class="n">SimpleLayout</span><span class="p">));</span>
+    <span class="c1">// 文件Appender</span>
+    <span class="n">log4cplus</span><span class="o">::</span><span class="n">SharedAppenderPtr</span> <span class="n">fileAppender</span><span class="p">(</span><span class="k">new</span> <span class="n">log4cplus</span><span class="o">::</span><span class="n">FileAppender</span><span class="p">(</span><span class="s">"log.log"</span><span class="p">,</span><span class="n">std</span><span class="o">::</span><span class="n">ios_base</span><span class="o">::</span><span class="n">app</span><span class="p">));</span>
+    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">pattern</span> <span class="o">=</span> <span class="s">"%D{ %Y-%m-%d %H:%M:%S.%q} %5p %c: %m (%l)%n"</span><span class="p">;</span>
+    <span class="n">fileAppender</span><span class="o">-&gt;</span><span class="n">setLayout</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">log4cplus</span><span class="o">::</span><span class="n">Layout</span><span class="o">&gt;</span><span class="p">(</span><span class="k">new</span> <span class="n">log4cplus</span><span class="o">::</span><span class="n">PatternLayout</span><span class="p">(</span><span class="n">pattern</span><span class="p">)));</span>
+    <span class="c1">// 获取实例</span>
+    <span class="k">auto</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">log4cplus</span><span class="o">::</span><span class="n">Logger</span><span class="o">::</span><span class="n">getInstance</span><span class="p">(</span><span class="s">"test"</span><span class="p">);</span>
+    <span class="n">logger</span><span class="p">.</span><span class="n">setLogLevel</span><span class="p">(</span><span class="n">log4cplus</span><span class="o">::</span><span class="n">INFO_LOG_LEVEL</span><span class="p">);</span>
+    <span class="c1">// 加上Appender</span>
+    <span class="n">logger</span><span class="p">.</span><span class="n">addAppender</span><span class="p">(</span><span class="n">consoleAppender</span><span class="p">);</span>
+    <span class="n">logger</span><span class="p">.</span><span class="n">addAppender</span><span class="p">(</span><span class="n">fileAppender</span><span class="p">);</span>
+    <span class="c1">// 输出日志</span>
+    <span class="n">LOG4CPLUS_INFO</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">LOG4CPLUS_TEXT</span><span class="p">(</span><span class="s">"main"</span><span class="p">));</span>
+    <span class="n">LOG4CPLUS_ERROR</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">LOG4CPLUS_TEXT</span><span class="p">(</span><span class="s">"main"</span><span class="p">));</span>
+    <span class="n">log</span><span class="p">();</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>运行结果</p>
+
+<p>控制台</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO - main
+ERROR - main
+INFO - fun
+</code></pre></div></div>
+
+<p>log.log 文件</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2021-06-24 14:44:47.199  INFO <span class="nb">test</span>: main <span class="o">(</span>/mnt/d/Document/Documents/CLion/log4cplusdemo/main.cpp:23<span class="o">)</span>
+2021-06-24 14:44:47.200 ERROR <span class="nb">test</span>: main <span class="o">(</span>/mnt/d/Document/Documents/CLion/log4cplusdemo/main.cpp:24<span class="o">)</span>
+2021-06-24 14:44:47.200  INFO <span class="nb">test</span>: fun <span class="o">(</span>/mnt/d/Document/Documents/CLion/log4cplusdemo/main.cpp:7<span class="o">)</span>
+</code></pre></div></div>
+
+<p>可以看到，在log函数内获取test实例也是可以使用的，所以一个 Logger 实例被配置后，将一直存在于程序中，在程序的任何地方都可通过实例名称获取到这个Logger，不用重新配置。</p>
+
+<h2 id="控制台日志颜色">控制台日志颜色</h2>
+
+<p>使用 CLion 开发的话，可以使用插件 <code class="highlighter-rouge">Grep Console</code> 实现不同的日志级别对应不同的颜色。</p>
+
+<p>我自己的配色如下</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>等级    RGB颜色
+FATAL  CC666E
+ERROR  CC666E
+WARN   ABC023
+INFO   5394EC
+DEBUG  299999
+TRACE  999999
+</code></pre></div></div>
+
+<p>如果不是 CLion；Linux 终端配色方案可以参考<a href="../Linux/013_LinuxConsoleColor.html">《ANSI 兼容终端颜色控制》</a></p>
+
+<h2 id="小结">小结</h2>
+
+<p>这篇文章提到的都是用代码配置，每次改配置还需要重新编译代码。用过 log4j 的应该都知道使用配置文件配置是很灵活的，所以 lo4cplus 也是提供了通过配置文件配置的。具体使用方式请参考<a href="007_log4cplusPropertyConfigurator.html">《log4cplus配置文件》</a></p>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

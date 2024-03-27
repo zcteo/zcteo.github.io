@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>MySQL常见问题及优化 闻道</title>
+  <meta name="title" content="MySQL常见问题及优化 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="MySQL常见问题及优化 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/others/003" />
+  <meta property="og:title" content="MySQL常见问题及优化 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/others/003" />
+  <meta property="twitter:title" content="MySQL常见问题及优化 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/others/003" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="mysql常见问题及优化">MySQL常见问题及优化</h1>
+
+<hr />
+
+<p>[TOC]</p>
+
+<hr />
+
+<h2 id="mysql解压版安装">MySQL解压版安装</h2>
+
+<h3 id="windows">Windows</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 解压，添加bin目录到path</span>
+
+<span class="c"># 根目录新建my.ini，内容见下文</span>
+
+<span class="c"># 管理员CMD到bin目录</span>
+
+<span class="c"># 初始化</span>
+mysqld <span class="nt">--initialize</span>
+
+<span class="c"># 安装</span>
+mysqld <span class="nb">install</span>
+
+<span class="c"># 启动</span>
+net start mysql
+
+<span class="c"># 登录，密码在data目录*.err文件里面</span>
+mysql <span class="nt">-uroot</span> <span class="nt">-p</span>
+
+<span class="c"># 修改密码</span>
+<span class="nb">set </span>password <span class="k">for </span>root@localhost <span class="o">=</span> password<span class="o">(</span><span class="s1">'123'</span><span class="o">)</span><span class="p">;</span>
+
+<span class="c"># 卸载方法</span>
+net stop mysql
+sc delete mysql
+<span class="c"># 手动删除文件夹</span>
+</code></pre></div></div>
+<p>my.ini</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[client]</span>
+
+<span class="c"># 客户端编码
+</span><span class="py">default-character-set</span> <span class="p">=</span> <span class="s">utf8</span>
+
+<span class="c"># 端口
+</span><span class="py">port</span> <span class="p">=</span> <span class="s">3306</span>
+
+<span class="nn">[mysql]</span>
+
+<span class="c"># 数据传输编码
+</span><span class="py">default-character-set</span> <span class="p">=</span> <span class="s">utf8</span>
+
+<span class="nn">[mysqld]</span>
+
+<span class="py">port</span> <span class="p">=</span> <span class="s">3306</span>
+
+<span class="c"># 安装目录，根据自己实际情况指定
+</span><span class="py">basedir</span> <span class="p">=</span> <span class="s">D:/App/mysql Server 5.7/</span>
+
+<span class="c"># 数据目录，mysql所有数据文件保存目录
+</span><span class="py">datadir</span> <span class="p">=</span> <span class="s">D:/App/mysql Server 5.7/Data</span>
+
+<span class="c"># 服务端编码
+</span><span class="py">character-set-server</span> <span class="p">=</span> <span class="s">utf8</span>
+
+<span class="c"># 默认存储引擎
+</span><span class="py">default-storage-engine</span> <span class="p">=</span> <span class="s">INNODB</span>
+
+<span class="c"># 严格模式，遵循SQL语言标准
+</span><span class="py">sql-mode</span> <span class="p">=</span> <span class="s">"STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"</span>
+
+<span class="c"># 最大连接数
+</span><span class="py">max_connections</span> <span class="p">=</span> <span class="s">151</span>
+
+</code></pre></div></div>
+
+<h3 id="linux">Linux</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#安装</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>mysql-server
+
+<span class="c">#登录，5.7用户名密码在/etc/mysql/debian.cnf</span>
+mysql <span class="nt">-uroot</span>  <span class="nt">-p</span>
+
+<span class="c">#修改root密码</span>
+use mysql<span class="p">;</span>
+update user <span class="nb">set </span><span class="nv">authentication_string</span><span class="o">=</span>PASSWORD<span class="o">(</span><span class="s2">"123"</span><span class="o">)</span> where <span class="nv">user</span><span class="o">=</span><span class="s1">'root'</span><span class="p">;</span>
+update user <span class="nb">set </span><span class="nv">plugin</span><span class="o">=</span><span class="s2">"mysql_native_password"</span><span class="p">;</span>
+flush privileges<span class="p">;</span>
+
+<span class="c">#卸载</span>
+<span class="nb">sudo </span>apt purge mysql-<span class="k">*</span>
+</code></pre></div></div>
+
+<p>/etc/mysql/my.cnf</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 修改默认编码，防止中文乱码
+</span><span class="nn">[client]</span>
+
+<span class="py">default-character-set</span><span class="p">=</span><span class="s">utf8</span>
+
+<span class="nn">[mysql]</span>
+
+<span class="py">default-character-set</span><span class="p">=</span><span class="s">utf8</span>
+
+<span class="nn">[mysqld]</span>
+
+<span class="py">character-set-server</span><span class="p">=</span><span class="s">utf8</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="常见问题">常见问题</h2>
+
+<h3 id="1charvarchar的区别是什么">1：char、varchar的区别是什么？</h3>
+
+<p>varchar是变长而char的长度是固定的。如果你的内容是固定大小的，你会得到更好的性能。</p>
+
+<h3 id="2--truncate和delete的区别是什么">2:  TRUNCATE和DELETE的区别是什么？</h3>
+
+<p>DELETE命令从一个表中删除某一行，或多行，TRUNCATE命令永久地从表中删除每一行。</p>
+
+<h3 id="3什么是触发器mysql中都有哪些触发器">3：什么是触发器，mysql中都有哪些触发器？</h3>
+
+<p>触发器是指一段代码，当触发某个事件时，自动执行这些代码。在mysql数据库中有如下六种触发器：</p>
+
+<p>1、Before Insert</p>
+
+<p>2、After Insert</p>
+
+<p>3、Before Update</p>
+
+<p>4、After Update</p>
+
+<p>5、Before Delete</p>
+
+<p>6、After Delete</p>
+
+<h3 id="4float和double的区别是什么">4：FLOAT和DOUBLE的区别是什么？</h3>
+
+<p>FLOAT类型数据可以存储至多8位十进制数，并在内存中占4字节。</p>
+
+<p>DOUBLE类型数据可以存储至多18位十进制数，并在内存中占8字节。</p>
+
+<h3 id="5下面mysql数据类型表达的意义int0char16varchar16datetimetext">5：下面mysql数据类型表达的意义（int(0)、char(16)、varchar(16)、datetime、text）</h3>
+
+<p>int(0)表示数据是INT类型，长度是0</p>
+
+<p>char(16)表示固定长度字符串，长度为16</p>
+
+<p>varchar(16)表示可变长度字符串，长度为16</p>
+
+<p>datetime表示时间类型</p>
+
+<p>text表示字符串类型，能存储大字符串，最多存储65535字节数据</p>
+
+<h3 id="6mysql常用表引擎">6：MySQL常用表引擎</h3>
+
+<p>InnoDB、MyISAM、Memory</p>
+
+<h3 id="7innodb和myisam的区别">7：InnoDB和MyISAM的区别</h3>
+
+<p>1、InnoDB支持事务，MyISAM不支持；</p>
+
+<p>2、InnoDB数据存储在共享表空间，MyISAM数据存储在文件中；</p>
+
+<p>3、InnoDB支持行级锁，MyISAM只支持表锁；</p>
+
+<p>4、InnoDB支持崩溃后的恢复，MyISAM不支持；</p>
+
+<p>5、InnoDB支持外键，MyISAM不支持；</p>
+
+<p>6、InnoDB不支持全文索引，MyISAM支持全文索引；</p>
+
+<h3 id="8innodb引擎的特性">8：Innodb引擎的特性</h3>
+
+<p>1、插入缓冲（insert buffer)</p>
+
+<p>2、二次写(double write)</p>
+
+<p>3、自适应哈希索引(ahi)</p>
+
+<p>4、预读(read ahead)</p>
+
+<h3 id="9varchar和text的区别">9：varchar和text的区别</h3>
+
+<p>1、varchar可指定字符数，text不能指定，内部存储varchar是存入的实际字符数+1个字节（n&lt;=255）或2个字节(n&gt;255)，text是实际字符数+2个字节。</p>
+
+<p>2、text类型不能有默认值。</p>
+
+<p>3、varchar可直接创建索引，text创建索引要指定前多少个字符。varchar查询速度快于text，在都创建索引的情况下，text的索引几乎不起作用。</p>
+
+<p>4、查询text需要创建临时表。</p>
+
+<h3 id="10varchar50中50的含义">10：varchar(50)中50的含义</h3>
+
+<p>最多存放50个字符，varchar(50)和(200)存储hello所占空间一样，但后者在排序时会消耗更多内存，因为order by col采用fixed_length计算col长度(memory引擎也一样)。</p>
+
+<h3 id="11int20中20的含义">11：int(20)中20的含义</h3>
+
+<p>是指显示字符的长度，不影响内部存储，只是当定义了ZEROFILL时，前面补多少个 0</p>
+
+<h3 id="12mysql中索引主键唯一索引联合索引的区别对数据库的性能有什么影响">12：MySQL中索引、主键、唯一索引、联合索引的区别，对数据库的性能有什么影响？</h3>
+
+<p>一个表只能有一个主键索引，但是可以有多个唯一索引。</p>
+
+<p>1、主键索引一定是唯一索引，唯一索引不是主键索引。</p>
+
+<p>2、主键可以与外键构成参照完整性约束，防止数据不一致。</p>
+
+<p>3、联合索引：将多个列组合在一起创建索引，可以覆盖多个列。（也叫复合索引，组合索引）</p>
+
+<p>4、外键索引：只有InnoDB类型的表才可以使用外键索引，保证数据的一致性、完整性、和实现级联操作（基本不用）。</p>
+
+<p>5、全文索引：mysql自带的全文索引只能用于MyISAM，并且只能对英文进行全文检索 （基本不用）</p>
+
+<h3 id="13创建mysql联合索引应该注意什么">13：创建MySQL联合索引应该注意什么？</h3>
+
+<p>需遵循前缀原则</p>
+
+<h3 id="14列值为null时查询是否会用到索引">14：列值为NULL时，查询是否会用到索引？</h3>
+
+<p>在mysql里NULL值的列也是走索引的。当然，如果计划对列进行索引，就要尽量避免把它设置为可空，mysql难以优化引用了可空列的查询，它会使索引、索引统计和值更加复杂。</p>
+
+<h3 id="15以下语句是否会应用索引select-from-users-where-yearadddate--2019">15：以下语句是否会应用索引：SELECT FROM users WHERE YEAR(adddate) &lt; 2019;*</h3>
+
+<p>不会，因为只要列涉及到运算，mysql就不会使用索引。</p>
+
+<h3 id="16myisam索引实现">16：MyISAM索引实现？</h3>
+
+<p>MyISAM存储引擎使用B+Tree作为索引结构，叶节点的data域存放的是数据记录的地址。MyISAM的索引方式也叫做非聚簇索引的，之所以这么称呼是为了与InnoDB的聚簇索引区分。</p>
+
+<h3 id="17myisam索引与innodb索引的区别">17：MyISAM索引与InnoDB索引的区别？</h3>
+
+<p>1、InnoDB索引是聚簇索引，MyISAM索引是非聚簇索引。</p>
+
+<p>2、InnoDB的主键索引的叶子节点存储着行数据，因此主键索引非常高效。</p>
+
+<p>3、MyISAM索引的叶子节点存储的是行数据地址，需要再寻址一次才能得到数据。</p>
+
+<p>4、InnoDB非主键索引的叶子节点存储的是主键和其他带索引的列数据，因此查询时做到覆盖索引会非常高效。</p>
+
+<h3 id="18mysql的常用关联查询语句有哪些">18：MySQL的常用关联查询语句有哪些？</h3>
+
+<p>1、交叉连接（CROSS JOIN）</p>
+
+<p>2、内连接（INNER JOIN）</p>
+
+<p>3、外连接（LEFT JOIN/RIGHT JOIN）</p>
+
+<p>4、联合查询（UNION与UNION ALL）</p>
+
+<p>5、全连接（FULL JOIN）</p>
+
+<p>6、交叉连接（CROSS JOIN）</p>
+
+<h4 id="内连接inner-join">内连接（INNER JOIN）</h4>
+
+<p>1、等值连接：ON A.id=B.id</p>
+
+<p>2、不等值连接：ON A.id &gt; B.id</p>
+
+<p>3、自连接：SELECT * FROM A T1 INNER JOIN A T2 ON T1.id=T2.pid</p>
+
+<h4 id="外连接left-joinright-join">外连接（LEFT JOIN/RIGHT JOIN）</h4>
+
+<p>1、左外连接：LEFT OUTER JOIN， 以左表为主，先查询出左表，按照ON后的关联条件匹配右表，没有匹配到的用NULL填充，可以简写成LEFT JOIN</p>
+
+<p>2、右外连接：RIGHT OUTER JOIN， 以右表为主，先查询出右表，按照ON后的关联条件匹配左表，没有匹配到的用NULL填充，可以简写成RIGHT JOIN</p>
+
+<h4 id="联合查询union与union-all">联合查询（UNION与UNION ALL）</h4>
+
+<p>1、就是把多个结果集集中在一起，UNION前的结果为基准，需要注意的是联合查询的列数要相等，相同的记录行会合并</p>
+
+<p>2、如果使用UNION ALL，不会合并重复的记录行</p>
+
+<p>3、效率 UNION 高于 UNION ALL</p>
+
+<h4 id="全连接full-join">全连接（FULL JOIN）</h4>
+
+<p>1、mysql不支持全连接</p>
+
+<p>2、可以使用LEFT JOIN 和UNION和RIGHT JOIN联合使用</p>
+
+<h4 id="嵌套查询">嵌套查询</h4>
+
+<p>用一条SQL语句得结果作为另外一条SQL语句得条件，效率不好把握</p>
+
+<h3 id="19union与union-all的区别">19：UNION与UNION ALL的区别？</h3>
+
+<p>1、如果使用UNION ALL，不会合并重复的记录行</p>
+
+<p>2、效率 UNION 高于 UNION ALL</p>
+
+<h3 id="20如何查找查询速度慢的原因">20：如何查找查询速度慢的原因</h3>
+
+<p>记录慢查询日志，分析查询日志，不要直接打开慢查询日志进行分析，这样比较浪费时间和精力，可以使用pt-query-digest工具进行分析</p>
+
+<p>使用show profile</p>
+
+<p>使用show status</p>
+
+<p>show status会返回一些计数器，show global status会查看所有服务器级别的所有计数</p>
+
+<p>有时根据这些计数，可以推测出哪些操作代价较高或者消耗时间多</p>
+
+<p>show processlist</p>
+
+<p>观察是否有大量线程处于不正常的状态或特征</p>
+
+<p>最常问的mysql面试题五——每个开发人员都应该知道</p>
+
+<p>使用explain</p>
+
+<p>分析单条SQL语句</p>
+
+<hr />
+
+<h2 id="mysql优化">MySQL优化</h2>
+
+<h3 id="sql语句优化的一些方法">SQL语句优化的一些方法</h3>
+
+<p>1、对查询进行优化，应尽量避免全表扫描，首先应考虑在 where 及 order by 涉及的列上建立索引。</p>
+
+<p>2、应尽量避免在 where 子句中对字段进行 null 值判断，否则将导致引擎放弃使用索引而进行全表扫描，如：</p>
+
+<p>3、应尽量避免在 where 子句中使用!=或&lt;&gt;操作符，否则引擎将放弃使用索引而进行全表扫描。</p>
+
+<p>4、应尽量避免在 where 子句中使用or 来连接条件，否则将导致引擎放弃使用索引而进行全表扫描，如：</p>
+
+<p>5、in 和 not in 也要慎用，否则会导致全表扫描，如：</p>
+
+<p>6、下面的查询也将导致全表扫描：select id from t where name like ‘%李%’若要提高效率，可以考虑全文检索。</p>
+
+<p>7、 如果在 where 子句中使用参数，也会导致全表扫描。因为SQL只有在运行时才会解析局部变量，但优化程序不能将访问计划的选择推迟到运行时；它必须在编译时进行选择。然 而，如果在编译时建立访问计划，变量的值还是未知的，因而无法作为索引选择的输入项。如下面语句将进行全表扫描：</p>
+
+<p>8、应尽量避免在 where 子句中对字段进行表达式操作，这将导致引擎放弃使用索引而进行全表扫描。如：</p>
+
+<p>9、应尽量避免在where子句中对字段进行函数操作，这将导致引擎放弃使用索引而进行全表扫描。如：</p>
+
+<p>10、不要在 where 子句中的“=”左边进行函数、算术运算或其他表达式运算，否则系统将可能无法正确使用索引。</p>
+
+<h3 id="查询优化的一些方法">查询优化的一些方法</h3>
+
+<h3 id="优化查询过程中的数据访问">优化查询过程中的数据访问</h3>
+
+<p>1、访问数据太多导致查询性能下降</p>
+
+<p>2、确定应用程序是否在检索大量超过需要的数据，可能是太多行或列</p>
+
+<p>3、确认mysql服务器是否在分析大量不必要的数据行</p>
+
+<p>4、避免犯如下SQL语句错误</p>
+
+<p>5、查询不需要的数据。解决办法：使用limit解决</p>
+
+<p>6、多表关联返回全部列。解决办法：指定列名</p>
+
+<p>7、总是返回全部列。解决办法：避免使用SELECT *</p>
+
+<p>8、重复查询相同的数据。解决办法：可以缓存数据，下次直接读取缓存</p>
+
+<p>9、是否在扫描额外的记录。解决办法：</p>
+
+<p>10、使用explain进行分析，如果发现查询需要扫描大量的数据，但只返回少数的行，可以通过如下技巧去优化：</p>
+
+<p>11、使用索引覆盖扫描，把所有的列都放到索引中，这样存储引擎不需要回表获取对应行就可以返回结果。</p>
+
+<p>12、改变数据库和表的结构，修改数据表范式</p>
+
+<p>13、重写SQL语句，让优化器可以以更优的方式执行查询。</p>
+
+<h3 id="优化长难的查询语句">优化长难的查询语句</h3>
+
+<p>1、一个复杂查询还是多个简单查询</p>
+
+<p>2、mysql内部每秒能扫描内存中上百万行数据，相比之下，响应数据给客户端就要慢得多</p>
+
+<p>3、使用尽可能小的查询是好的，但是有时将一个大的查询分解为多个小的查询是很有必要的。</p>
+
+<p>4、切分查询</p>
+
+<p>5、将一个大的查询分为多个小的相同的查询</p>
+
+<p>6、一次性删除1000万的数据要比一次删除1万，暂停一会的方案更加损耗服务器开销。</p>
+
+<p>7、分解关联查询，让缓存的效率更高。</p>
+
+<p>8、执行单个查询可以减少锁的竞争。</p>
+
+<p>9、在应用层做关联更容易对数据库进行拆分。</p>
+
+<p>10、查询效率会有大幅提升。</p>
+
+<p>11、较少冗余记录的查询。</p>
+
+<h3 id="优化特定类型的查询语句">优化特定类型的查询语句</h3>
+
+<p>1、count(*)会忽略所有的列，直接统计所有列数，不要使用count(列名)</p>
+
+<p>2、MyISAM中，没有任何where条件的count(*)非常快。</p>
+
+<p>3、当有where条件时，MyISAM的count统计不一定比其它引擎快。</p>
+
+<p>4、可以使用explain查询近似值，用近似值替代count(*)</p>
+
+<p>5、增加汇总表</p>
+
+<p>6、使用缓存</p>
+
+<h3 id="优化关联查询">优化关联查询</h3>
+
+<p>1、确定ON或者USING子句中是否有索引。</p>
+
+<p>2、确保GROUP BY和ORDER BY只有一个表中的列，这样mysql才有可能使用索引。</p>
+
+<h3 id="优化子查询">优化子查询</h3>
+
+<p>1、用关联查询替代</p>
+
+<p>2、优化GROUP BY和DISTINCT</p>
+
+<p>3、这两种查询据可以使用索引来优化，是最有效的优化方法</p>
+
+<p>4、关联查询中，使用标识列分组的效率更高</p>
+
+<p>5、如果不需要ORDER BY，进行GROUP BY时加ORDER BY NULL，mysql不会再进行文件排序。</p>
+
+<p>6、WITH ROLLUP超级聚合，可以挪到应用程序处理</p>
+
+<h3 id="优化limit分页">优化LIMIT分页</h3>
+
+<p>1、LIMIT偏移量大的时候，查询效率较低</p>
+
+<p>2、可以记录上次查询的最大ID，下次查询时直接根据该ID来查询</p>
+
+<h3 id="优化union查询">优化UNION查询</h3>
+
+<p>UNION ALL的效率高于UNION</p>
+
+<p>优化WHERE子句</p>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

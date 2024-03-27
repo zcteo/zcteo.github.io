@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>Deepin V20 标题栏样式修改 闻道</title>
+  <meta name="title" content="Deepin V20 标题栏样式修改 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="Deepin V20 标题栏样式修改 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/linux/007" />
+  <meta property="og:title" content="Deepin V20 标题栏样式修改 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/linux/007" />
+  <meta property="twitter:title" content="Deepin V20 标题栏样式修改 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/linux/007" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="deepin-v20-标题栏样式修改">Deepin V20 标题栏样式修改</h1>
+<p>@[toc]</p>
+<h2 id="引言">引言</h2>
+
+<p>deepin v20 即 UOS 社区版，使用国内的常用软件很方便，但是一些第三方软件标题栏会显得很突兀；尤其是 JetBrains 全家桶，全部都有大白边。对于我这样的强迫症来说就很难受了，所以要去掉 deepin 标题栏的大白边，deepin v20社区版亲测可用。</p>
+
+<h2 id="新建配置文件路径">新建配置文件路径</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> ~/.local/share/deepin/themes/deepin/light
+<span class="nb">mkdir</span> <span class="nt">-p</span> ~/.local/share/deepin/themes/deepin/dark
+</code></pre></div></div>
+
+<h2 id="light-主题的配置文件">light 主题的配置文件</h2>
+
+<p>风格类似 Ubuntu 的标题栏，使用暗色主题的按钮</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim ~/.local/share/deepin/themes/deepin/light/titlebar.ini
+</code></pre></div></div>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[Active]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+<span class="py">textColor</span><span class="p">=</span><span class="c">#DDDDDD
+</span><span class="s">backgroundColor=#303030</span>
+
+<span class="py">menuIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_normal.svg</span>
+<span class="py">menuIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_hover.svg</span>
+<span class="py">menuIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_press.svg</span>
+<span class="py">menuIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_disabled.svg</span>
+
+<span class="py">minimizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_normal.svg</span>
+<span class="py">minimizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_hover.svg</span>
+<span class="py">minimizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_press.svg</span>
+<span class="py">minimizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_disabled.svg</span>
+
+<span class="py">maximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_normal.svg</span>
+<span class="py">maximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_hover.svg</span>
+<span class="py">maximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_press.svg</span>
+<span class="py">maximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_disabled.svg</span>
+
+<span class="py">unmaximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_normal.svg</span>
+<span class="py">unmaximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_hover.svg</span>
+<span class="py">unmaximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_press.svg</span>
+<span class="py">unmaximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_disabled.svg</span>
+
+<span class="py">closeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_normal.svg</span>
+<span class="py">closeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_hover.svg</span>
+<span class="py">closeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_press.svg</span>
+<span class="py">closeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_disabled.svg</span>
+
+<span class="nn">[Inactive]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+<span class="py">textColor</span><span class="p">=</span><span class="c">#8C8C8C
+</span><span class="s">backgroundColor=#303030</span>
+
+<span class="py">menuIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_normal.svg</span>
+<span class="py">menuIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_hover.svg</span>
+<span class="py">menuIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_press.svg</span>
+<span class="py">menuIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_disabled.svg</span>
+
+<span class="py">minimizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_normal.svg</span>
+<span class="py">minimizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_hover.svg</span>
+<span class="py">minimizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_press.svg</span>
+<span class="py">minimizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_disabled.svg</span>
+
+<span class="py">maximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_normal.svg</span>
+<span class="py">maximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_hover.svg</span>
+<span class="py">maximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_press.svg</span>
+<span class="py">maximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_disabled.svg</span>
+
+<span class="py">unmaximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_normal.svg</span>
+<span class="py">unmaximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_hover.svg</span>
+<span class="py">unmaximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_press.svg</span>
+<span class="py">unmaximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_disabled.svg</span>
+
+<span class="py">closeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_normal.svg</span>
+<span class="py">closeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_hover.svg</span>
+<span class="py">closeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_press.svg</span>
+<span class="py">closeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_disabled.svg</span>
+
+<span class="nn">[NoAlpha/Active]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+<span class="py">textColor</span><span class="p">=</span><span class="c">#DDDDDD
+</span><span class="s">backgroundColor=#303030</span>
+
+<span class="py">menuIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_normal.svg</span>
+<span class="py">menuIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_hover.svg</span>
+<span class="py">menuIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_press.svg</span>
+<span class="py">menuIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_disabled.svg</span>
+
+<span class="py">minimizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_normal.svg</span>
+<span class="py">minimizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_hover.svg</span>
+<span class="py">minimizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_press.svg</span>
+<span class="py">minimizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_disabled.svg</span>
+
+<span class="py">maximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_normal.svg</span>
+<span class="py">maximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_hover.svg</span>
+<span class="py">maximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_press.svg</span>
+<span class="py">maximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_disabled.svg</span>
+
+<span class="py">unmaximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_normal.svg</span>
+<span class="py">unmaximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_hover.svg</span>
+<span class="py">unmaximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_press.svg</span>
+<span class="py">unmaximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_disabled.svg</span>
+
+<span class="py">closeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_normal.svg</span>
+<span class="py">closeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_hover.svg</span>
+<span class="py">closeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_press.svg</span>
+<span class="py">closeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_disabled.svg</span>
+
+<span class="nn">[NoAlpha/Inactive]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+<span class="py">textColor</span><span class="p">=</span><span class="c">#8C8C8C
+</span><span class="s">backgroundColor=#303030</span>
+
+<span class="py">menuIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_normal.svg</span>
+<span class="py">menuIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_hover.svg</span>
+<span class="py">menuIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_press.svg</span>
+<span class="py">menuIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_disabled.svg</span>
+
+<span class="py">minimizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_normal.svg</span>
+<span class="py">minimizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_hover.svg</span>
+<span class="py">minimizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_press.svg</span>
+<span class="py">minimizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_disabled.svg</span>
+
+<span class="py">maximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_normal.svg</span>
+<span class="py">maximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_hover.svg</span>
+<span class="py">maximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_press.svg</span>
+<span class="py">maximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_disabled.svg</span>
+
+<span class="py">unmaximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_normal.svg</span>
+<span class="py">unmaximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_hover.svg</span>
+<span class="py">unmaximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_press.svg</span>
+<span class="py">unmaximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_disabled.svg</span>
+
+<span class="py">closeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_normal.svg</span>
+<span class="py">closeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_hover.svg</span>
+<span class="py">closeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_press.svg</span>
+<span class="py">closeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_disabled.svg</span>
+
+<span class="nn">[Unmanaged]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+<span class="py">textColor</span><span class="p">=</span><span class="c">#DDDDDD
+</span><span class="s">backgroundColor=#303030</span>
+
+<span class="py">menuIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_normal.svg</span>
+<span class="py">menuIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_hover.svg</span>
+<span class="py">menuIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_press.svg</span>
+<span class="py">menuIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/menu_disabled.svg</span>
+
+<span class="py">minimizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_normal.svg</span>
+<span class="py">minimizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_hover.svg</span>
+<span class="py">minimizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_press.svg</span>
+<span class="py">minimizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/minimize_disabled.svg</span>
+
+<span class="py">maximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_normal.svg</span>
+<span class="py">maximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_hover.svg</span>
+<span class="py">maximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_press.svg</span>
+<span class="py">maximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/maximize_disabled.svg</span>
+
+<span class="py">unmaximizeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_normal.svg</span>
+<span class="py">unmaximizeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_hover.svg</span>
+<span class="py">unmaximizeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_press.svg</span>
+<span class="py">unmaximizeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/unmaximize_disabled.svg</span>
+
+<span class="py">closeIcon.normal</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_normal.svg</span>
+<span class="py">closeIcon.hover</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_hover.svg</span>
+<span class="py">closeIcon.press</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_press.svg</span>
+<span class="py">closeIcon.disabled</span><span class="p">=</span><span class="s">:/deepin/themes/deepin/dark/icons/close_disabled.svg</span>
+
+</code></pre></div></div>
+
+<h2 id="dark-主题的配置文件">dark 主题的配置文件</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim ~/.local/share/deepin/themes/deepin/dark/titlebar.ini
+</code></pre></div></div>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[Active]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+
+<span class="nn">[Inactive]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+
+<span class="nn">[NoAlpha/Active]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+
+<span class="nn">[NoAlpha/Inactive]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+
+<span class="nn">[Unmanaged]</span>
+<span class="py">height</span><span class="p">=</span><span class="s">30</span>
+
+</code></pre></div></div>
+
+<h2 id="配置文件依据">配置文件依据</h2>
+
+<ol>
+  <li>github <a href="https://github.com/linuxdeepin/developer-center/issues/1210">linuxdeepin issue</a></li>
+  <li>github <a href="https://github.com/linuxdeepin/dde-kwin/tree/master/plugins/kdecoration/deepin">linuxdeepin ini文件</a></li>
+  <li>github <a href="https://github.com/linuxdeepin/dde-kwin/blob/master/plugins/kdecoration/chameleontheme.cpp">linuxdeepin 源码</a></li>
+</ol>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

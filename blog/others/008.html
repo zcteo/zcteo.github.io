@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>Valine 评论系统 闻道</title>
+  <meta name="title" content="Valine 评论系统 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="Valine 评论系统 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/others/008" />
+  <meta property="og:title" content="Valine 评论系统 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/others/008" />
+  <meta property="twitter:title" content="Valine 评论系统 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/others/008" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="valine-评论系统">Valine 评论系统</h1>
+
+<p>[TOC]</p>
+
+<h2 id="前言">前言</h2>
+
+<p>Valine 诞生于2017年8月7日，是一款基于 <a href="https://leancloud.cn/">LeanCloud</a> 的快速、简洁且高效的无后端评论系统。</p>
+
+<p>这是官网 <a href="https://valine.js.org/">https://valine.js.org/</a>，中文的，写得非常详细</p>
+
+<h2 id="博客引入-valine-评论系统">博客引入 valine 评论系统</h2>
+
+<h3 id="获取app-id-和-app-key">获取APP ID 和 APP Key</h3>
+
+<p>请先登录或注册 <code class="highlighter-rouge">LeanCloud</code>  <a href="https://console.leancloud.cn/">国内版</a>   <a href="https://console.leancloud.app/">国际版</a></p>
+
+<p>如果自己域名没有备案，就选国际版吧</p>
+
+<p>进入控制台，后点击左上角创建应用</p>
+
+<p><img src="img/008/01.png" alt="01" /></p>
+
+<p>应用创建好以后，进入刚刚创建的应用，选择左下角的<code class="highlighter-rouge">设置</code>&gt;<code class="highlighter-rouge">应用凭证</code>，然后就能看到你的<code class="highlighter-rouge">APP ID</code>和<code class="highlighter-rouge">APP Key</code>了：</p>
+
+<p><img src="img/008/02.png" alt="02" /></p>
+
+<h3 id="html-片段">HTML 片段</h3>
+
+<p>修改初始化对象中的<code class="highlighter-rouge">appId</code>和<code class="highlighter-rouge">appKey</code>的值为上面刚刚获取到的值即可(其他可以默认)。</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;head&gt;</span>
+    ..
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">'//unpkg.com/valine/dist/Valine.min.js'</span><span class="nt">&gt;&lt;/script&gt;</span>
+    ...
+<span class="nt">&lt;/head&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+    ...
+    <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"vcomments"</span><span class="nt">&gt;&lt;/div&gt;</span>
+    <span class="nt">&lt;script&gt;</span>
+        <span class="k">new</span> <span class="nx">Valine</span><span class="p">({</span>
+            <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#vcomments</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">appId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Your appId</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">appKey</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Your appKey</span><span class="dl">'</span>
+        <span class="p">})</span>
+    <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+</code></pre></div></div>
+
+<h3 id="配置">配置</h3>
+
+<p>修改初始化对象中的<code class="highlighter-rouge">appId</code>和<code class="highlighter-rouge">appKey</code>的值为上面刚刚获取到的值即可(<code class="highlighter-rouge">其他可以默认</code>)。</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="nx">Valine</span><span class="p">({</span>
+    <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#vcomments</span><span class="dl">'</span> <span class="p">,</span>
+    <span class="na">appId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Your appId</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">appKey</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Your appKey</span><span class="dl">'</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>其他详细配置项自己去官网看，<a href="https://valine.js.org/configuration.html">https://valine.js.org/configuration.html</a></p>
+
+<h3 id="npm">npm</h3>
+
+<p>Valine 现已发布到<a href="https://www.npmjs.com/package/valine">npm</a>，可以直接用命令安装：</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install valine</span>
+npm <span class="nb">install </span>valine <span class="nt">--save</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Use import</span>
+<span class="k">import</span> <span class="nx">Valine</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">valine</span><span class="dl">'</span><span class="p">;</span>
+<span class="c1">// or Use require</span>
+<span class="kd">const</span> <span class="nx">Valine</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">valine</span><span class="dl">'</span><span class="p">);</span>
+<span class="k">new</span> <span class="nx">Valine</span><span class="p">({</span>
+    <span class="na">el</span><span class="p">:</span><span class="dl">'</span><span class="s1">#vcomments</span><span class="dl">'</span><span class="p">,</span>
+    <span class="c1">// other config</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<h2 id="开启邮件通知">开启邮件通知</h2>
+
+<p>之前自己使用了 valine 评论系统，感觉还不错，但是吧，有人给我评论的话，我需要恰好打开那篇文章才能看到有评论，非常难受。所以需要搞一个通知啊，还好已经有很多大神开发出来了，所以就有了这一章的内容。</p>
+
+<p>官网推荐的是 <a href="https://github.com/zhaojun1998/Valine-Admin">https://github.com/zhaojun1998/Valine-Admin</a></p>
+
+<p>但是我选择的是 <a href="https://github.com/DesertsP/Valine-Admin">https://github.com/DesertsP/Valine-Admin</a>，上面那个就是从这 fork 的，而且这个还有评论管理</p>
+
+<p>详细部署方式可参考相关项目 github readme，我这里简单搞一下</p>
+
+<h3 id="准备工作">准备工作</h3>
+
+<p>首先要绑定域名</p>
+
+<p>进入创建的应用，选择左下角的<code class="highlighter-rouge">设置</code>&gt;<code class="highlighter-rouge">域名绑定</code>，绑定自己的二级域名</p>
+
+<p><img src="img/008/03.png" alt="03" /></p>
+
+<p>如果是国内版，这里的域名必须要<strong>备案</strong></p>
+
+<h3 id="部署">部署</h3>
+
+<p>进入评论系统数据库所在的LeanCloud应用。进入「云引擎 - WEB - 设置」，设置环境变量</p>
+
+<p><img src="img/008/04.png" alt="04" /></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>变量</th>
+      <th>示例</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SITE_NAME</td>
+      <td> </td>
+      <td>[必填]博客名称</td>
+    </tr>
+    <tr>
+      <td>SITE_URL</td>
+      <td> </td>
+      <td>[必填]首页地址</td>
+    </tr>
+    <tr>
+      <td><strong>SMTP_SERVICE</strong></td>
+      <td>QQ</td>
+      <td>[新版支持]邮件服务提供商，支持 QQ、163、126、Gmail 以及 <a href="https://nodemailer.com/smtp/well-known/#supported-services">更多</a></td>
+    </tr>
+    <tr>
+      <td>SMTP_USER</td>
+      <td>xxxxxx@qq.com</td>
+      <td>[必填]SMTP登录用户</td>
+    </tr>
+    <tr>
+      <td>SMTP_PASS</td>
+      <td>ccxxxxxxxxch</td>
+      <td>[必填]SMTP登录密码（QQ邮箱需要获取授权码，而不是登录密码）</td>
+    </tr>
+    <tr>
+      <td>SENDER_NAME</td>
+      <td> </td>
+      <td>[必填]发件人</td>
+    </tr>
+    <tr>
+      <td>SENDER_EMAIL</td>
+      <td>xxxxxx@qq.com</td>
+      <td>[必填]发件邮箱</td>
+    </tr>
+    <tr>
+      <td>ADMIN_URL</td>
+      <td> </td>
+      <td>[建议]Web主机二级域名（云引擎域名），用于自动唤醒</td>
+    </tr>
+    <tr>
+      <td>BLOGGER_EMAIL</td>
+      <td>xxxxx@gmail.com</td>
+      <td>[可选]博主通知收件地址，默认使用SENDER_EMAIL</td>
+    </tr>
+    <tr>
+      <td>AKISMET_KEY</td>
+      <td> </td>
+      <td>[可选]Akismet Key 用于垃圾评论检测，设为MANUAL_REVIEW开启人工审核，留空不使用反垃圾</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>进入「云引擎 - WEB - 部署」，部署模式选择「部署项目-Git部署」，点配置 git，输入 https://github.com/DesertsP/Valine-Admin.git，选生成环境，分支master，点击部署</p>
+
+<p><img src="img/008/05.png" alt="05" /></p>
+
+<h3 id="评论管理">评论管理</h3>
+
+<p>首先需要设置管理员信息。访问管理员注册页面<code class="highlighter-rouge">https://云引擎域名/sign-up</code>，注册管理员登录信息</p>
+
+<p><em>注：使用原版 Valine 如果遇到注册页面不显示直接跳转至登录页的情况，请手动删除_User表中的全部数据。</em></p>
+
+<h2 id="小结">小结</h2>
+
+<p>上面很多东西都是直接从官方原文档摘抄出来的，valine 和 Valine-Admin 都是中文文档，推荐直接去看原文档，我这里只是简单做一下记录，有变化请以官方文档为准</p>
+
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

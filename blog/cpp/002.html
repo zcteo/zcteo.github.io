@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>CLion 远程开发 闻道</title>
+  <meta name="title" content="CLion 远程开发 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="CLion 远程开发 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/cpp/002" />
+  <meta property="og:title" content="CLion 远程开发 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/cpp/002" />
+  <meta property="twitter:title" content="CLion 远程开发 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/cpp/002" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="clion-远程开发">CLion 远程开发</h1>
+
+<p>[toc]</p>
+
+<h1 id="引言">引言</h1>
+
+<p>不是所有目标机器都会有开发环境，或者说有些机器直接不支持安装开发环境，这个时候就需要远程调试了。但是远程调试 gdbserver 和 GDB 的命令又太多，记不住且工作效率低，所以需要借助一定的工具，幸好 CLion 就为远程调试提供了一系列的解决方案。</p>
+
+<h2 id="使用-gdbgdbserver">使用 GDB/gdbserver</h2>
+
+<p>如目标机器上不支持开发环境的话，GDB/gdbserver 远程调试是一个不错的解决方案。将生成的二进制文件放在目标机器上通过 gdbserver 启动，就可以使用 CLion 连接上去进行调试。</p>
+
+<p>CLion 为 GDB/gdbserver 远程调试提供了两种方法：即 GDB Remote Debug 和 Remote GDB Server。</p>
+
+<h3 id="gdb-remote-debug">GDB Remote Debug</h3>
+
+<hr />
+
+<p><strong>本地操作系统</strong>：macOS / Linux / Windows</p>
+
+<p><strong>远程操作系统</strong>：支持 gdbserver 的任意系统</p>
+
+<p><strong>需要的工具</strong>：远程系统 gdbserver</p>
+
+<p><strong>二进制文件同步</strong>：手动</p>
+
+<p><strong>交叉编译</strong>：两端系统不一致的话需要交叉编译</p>
+
+<p><strong>调试器</strong>：本地的 GDB</p>
+
+<hr />
+
+<p>使用场景：已有二进制文件，即二进制文件不是由 CLion 管理和生成的</p>
+
+<p><strong>一般步骤：</strong></p>
+
+<ol>
+  <li>准备一个带有调试信息的二进制文件</li>
+  <li>将带有调试信息的二进制文件放在远程计算机上</li>
+  <li>在 CLion 中配置 GDB Remote Debug 配置；参考后面配置方法</li>
+  <li>在远程计算机通过 gdbserver 启动需要调试的程序</li>
+  <li>在 CLion 愉快地调试</li>
+</ol>
+
+<p><strong>配置方法：</strong></p>
+
+<ol>
+  <li>
+    <p>Run -&gt; Edit Configurations
+<img src="img/002/01.png" alt="01" /></p>
+  </li>
+  <li>
+    <p>点击 <code class="highlighter-rouge">+</code> 选择 GDB Remote Debug；在 <code class="highlighter-rouge">'target remote' args</code> 填入 IP 地址和 gdbserver 启动的端口</p>
+
+    <p><img src="img/002/02.png" alt="02" /></p>
+  </li>
+</ol>
+
+<p><strong>启动远程程序</strong></p>
+
+<ol>
+  <li>
+    <p>将编译工具生成带调试信息的二进制文件上传到远程计算机</p>
+  </li>
+  <li>
+    <p>使用 gdbserver 启动程序</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdbserver :1234 <span class="nv">$executable</span>
+</code></pre></div>    </div>
+
+    <p><img src="img/002/03.png" alt="03" /></p>
+  </li>
+  <li>
+    <p>gdbserver 会挂起等待新的连接</p>
+  </li>
+</ol>
+
+<p><strong>启动调试</strong></p>
+
+<ol>
+  <li>
+    <p>选择上面的配置并启动调试</p>
+
+    <p><img src="img/002/04.png" alt="04" /></p>
+  </li>
+  <li>
+    <p>可以看到已经连接且命中了断点</p>
+
+    <p><img src="img/002/05.png" alt="05" /></p>
+
+    <p><img src="img/002/06.png" alt="06" /></p>
+  </li>
+</ol>
+
+<h3 id="remote-gdb-server">Remote GDB Server</h3>
+
+<hr />
+
+<p><strong>本地操作系统</strong>：macOS / Linux / Windows</p>
+
+<p><strong>远程操作系统</strong>：支持 gdbserver 的任意系统</p>
+
+<p><strong>需要的工具</strong>：远程系统 SSH 和 gdbserver</p>
+
+<p><strong>二进制文件同步</strong>：自动</p>
+
+<p><strong>交叉编译</strong>：两端系统不一致的话需要交叉编译</p>
+
+<p><strong>调试器</strong>：本地的 GDB</p>
+
+<hr />
+
+<p>使用场景：二进制文件全部由 CLion 本地构建并自动上传到远程系统</p>
+
+<p><strong>配置方法：</strong></p>
+
+<ol>
+  <li>
+    <p>Run -&gt; Edit Configurations</p>
+  </li>
+  <li>
+    <p>点击 <code class="highlighter-rouge">+</code> 选择 Remote GDB Server；通过下拉框选择需要调试的 Target 和 Executable，Credentials 可以选择已有的 SSH 连接或新建 SSH 连接，选择完毕之后其他信息会自动带入</p>
+
+    <p><img src="img/002/07.png" alt="07" /></p>
+  </li>
+</ol>
+
+<p><strong>启动调试</strong></p>
+
+<ol>
+  <li>
+    <p>选择刚刚的配置并启动调试</p>
+  </li>
+  <li>
+    <p>可以看到 Debug 输出为远程机器的控制台信息，且能看到文件上传；然后也能顺利命中断点</p>
+
+    <p><img src="img/002/08.png" alt="08" /></p>
+  </li>
+</ol>
+
+<h2 id="完全远程模式">完全远程模式</h2>
+
+<hr />
+
+<p><strong>本地操作系统</strong>：macOS / Linux / Windows</p>
+
+<p><strong>远程操作系统</strong>：Linux</p>
+
+<p><strong>需要的工具</strong>：远程系统编译链，SSH，rsync</p>
+
+<p><strong>二进制文件同步</strong>：自动</p>
+
+<p><strong>源码位置</strong>：本地机器，自动同步到远程机器</p>
+
+<hr />
+
+<p>这个模式不需要本地有编译器，整套工具都是用远程机器的，且代码会上传到远程机器</p>
+
+<p><strong>配置方法：</strong></p>
+
+<ol>
+  <li>
+    <p>File -&gt; Settings -&gt; Build, Execution, Deployment -&gt; Toolchains</p>
+  </li>
+  <li>
+    <p>点击 <code class="highlighter-rouge">+</code> 号，选择 Remote Host；填入 Credentials 信息，其他东西会自动带入</p>
+
+    <p><img src="img/002/09.png" alt="09" /></p>
+  </li>
+</ol>
+
+<p><strong>启动</strong></p>
+
+<ol>
+  <li>选择刚刚的配置</li>
+  <li>跟本地开发其实没什么区别</li>
+</ol>
+
+<h2 id="参考链接">参考链接</h2>
+
+<p><a href="https://www.jetbrains.com/help/clion/remote-development.html">https://www.jetbrains.com/help/clion/remote-development.html</a></p>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

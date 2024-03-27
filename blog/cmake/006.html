@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>CMake 安装动态库并生成 XxxConfig.cmake 文件 闻道</title>
+  <meta name="title" content="CMake 安装动态库并生成 XxxConfig.cmake 文件 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="CMake 安装动态库并生成 XxxConfig.cmake 文件 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/cmake/006" />
+  <meta property="og:title" content="CMake 安装动态库并生成 XxxConfig.cmake 文件 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/cmake/006" />
+  <meta property="twitter:title" content="CMake 安装动态库并生成 XxxConfig.cmake 文件 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/cmake/006" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?62e91d20eba5a638ec237f1451dc45c1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="cmake-安装动态库并生成-xxxconfigcmake-文件">CMake 安装动态库并生成 XxxConfig.cmake 文件</h1>
+
+<p>[toc]</p>
+
+<h2 id="引言">引言</h2>
+
+<p>之前说了一下<a href="005_CmakeGenerateLib.html">《使用 CMake 生成动态库/静态库》</a>，既然写了动态库，那肯定是要提供给别人调用的，我们就来看看要怎么调用</p>
+
+<p>写过 cmake 的都应该知道，cmake 通过 find_package 去找动态库，find_package 会去调用 XxxConfig.cmake 或 xxx-config.cmake 或 FindXxx.cmake 文件去找动态库，上述文件出现的顺序就是调用的优先级，前两个文件一般是库作者提供的，后一个主要用于库作者没提供前两个文件的时候我们自己编写一个给 find_package 调用。</p>
+
+<h2 id="展示">展示</h2>
+
+<p>直接上 CMakeLists.txt</p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cmake_minimum_required</span><span class="p">(</span>VERSION 3.16<span class="p">)</span>
+
+<span class="nb">project</span><span class="p">(</span>FooLibrary VERSION 1.0.0<span class="p">)</span>
+
+<span class="nb">set</span><span class="p">(</span>CMAKE_CXX_STANDARD 11<span class="p">)</span>
+
+<span class="nb">add_library</span><span class="p">(</span><span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span> SHARED library.cpp<span class="p">)</span>
+
+<span class="c1"># 这个使用了生成器表达式，其他项目引入包的时候就可以同时引入头文件包含路径</span>
+<span class="nb">target_include_directories</span><span class="p">(</span><span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span> INTERFACE
+        $&lt;BUILD_INTERFACE:<span class="si">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="si">}</span>&gt;
+        $&lt;INSTALL_INTERFACE:include&gt;<span class="p">)</span>
+
+<span class="nb">set</span><span class="p">(</span>CONFIG_FILE_PATH share/cmake/<span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span><span class="p">)</span>
+
+<span class="nb">include</span><span class="p">(</span>GNUInstallDirs<span class="p">)</span>
+
+<span class="nb">include</span><span class="p">(</span>CMakePackageConfigHelpers<span class="p">)</span>
+
+<span class="nf">configure_package_config_file</span><span class="p">(</span>FooLibraryConfig.cmake.in
+        <span class="si">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="si">}</span>/FooLibraryConfig.cmake
+        INSTALL_DESTINATION <span class="si">${</span><span class="nv">CONFIG_FILE_PATH</span><span class="si">}</span>
+        PATH_VARS CMAKE_INSTALL_INCLUDEDIR<span class="p">)</span>
+
+<span class="nf">write_basic_package_version_file</span><span class="p">(</span>
+        <span class="si">${</span><span class="nv">CMAKE_CURRENT_BINARY_DIR</span><span class="si">}</span>/<span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span>ConfigVersion.cmake
+        VERSION <span class="si">${</span><span class="nv">CMAKE_PROJECT_VERSION</span><span class="si">}</span>
+        COMPATIBILITY SameMajorVersion<span class="p">)</span>
+
+<span class="nb">install</span><span class="p">(</span>TARGETS <span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span>
+        EXPORT <span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span>Targets<span class="p">)</span>
+
+<span class="nb">install</span><span class="p">(</span>EXPORT <span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span>Targets
+        DESTINATION <span class="si">${</span><span class="nv">CONFIG_FILE_PATH</span><span class="si">}</span><span class="p">)</span>
+
+<span class="nb">install</span><span class="p">(</span>FILES
+        <span class="si">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="si">}</span>/FooLibraryConfig.cmake
+        <span class="si">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="si">}</span>/<span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span>ConfigVersion.cmake
+        DESTINATION <span class="si">${</span><span class="nv">CONFIG_FILE_PATH</span><span class="si">}</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>FooLibraryConfig.cmake.in</p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@PACKAGE_INIT@
+
+<span class="nb">include</span><span class="p">(</span><span class="s2">"</span><span class="si">${</span><span class="nv">CMAKE_CURRENT_LIST_DIR</span><span class="si">}</span><span class="s2">/@PROJECT_NAME@Targets.cmake"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><del>FooLibraryConfig.cmake.in</del></p>
+
+<p>下面这几句主要是为了设置 <code class="highlighter-rouge">&lt;PackageName&gt;_NCLUDE_DIR</code>  <code class="highlighter-rouge">&lt;PackageName&gt;_NCLUDES</code> <code class="highlighter-rouge">&lt;PackageName&gt;_LIBRARY</code>   <code class="highlighter-rouge">&lt;PackageName&gt;_LIBRARIES</code>   <code class="highlighter-rouge">&lt;PackageName&gt;_LIBS</code> 等变量，但是这些变量 CMake 没有要求且各个库提供的都不一样，所以也可以不设置。</p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@PACKAGE_INIT@
+
+<span class="nb">include</span><span class="p">(</span><span class="s2">"</span><span class="si">${</span><span class="nv">CMAKE_CURRENT_LIST_DIR</span><span class="si">}</span><span class="s2">/@PROJECT_NAME@Targets.cmake"</span><span class="p">)</span>
+
+<span class="nb">get_target_property</span><span class="p">(</span>@PROJECT_NAME@_LIBRARY @PROJECT_NAME@ LOCATION<span class="p">)</span>
+<span class="nf">set_and_check</span><span class="p">(</span>@PROJECT_NAME@_INCLUDE_DIR <span class="s2">"@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>然后就可以使用了</p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">find_package</span><span class="p">(</span>FooLibrary<span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="si">${</span><span class="nv">PROJECT_NAME</span><span class="si">}</span> FooLibrary<span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="简单解释cmakeliststxt">简单解释CMakeLists.txt</h2>
+
+<h3 id="set_target_properties">set_target_properties</h3>
+
+<p><a href="https://cmake.org/cmake/help/latest/command/set_target_properties.html">https://cmake.org/cmake/help/latest/command/set_target_properties.html</a></p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">set_target_properties</span><span class="p">(</span>target1 target2 ...
+                      PROPERTIES prop1 value1
+                      prop2 value2 ...<span class="p">)</span>
+</code></pre></div></div>
+
+<p>安装的时候会将 <code class="highlighter-rouge">PUBLIC_HEADER</code> 后面指定的头文件安装到指定的路径，默认为 include</p>
+
+<h3 id="target_include_directories">target_include_directories</h3>
+
+<p><a href="https://cmake.org/cmake/help/latest/command/target_include_directories.html">https://cmake.org/cmake/help/latest/command/target_include_directories.html</a></p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">target_include_directories</span><span class="p">(</span>&lt;target&gt; [SYSTEM] [AFTER|BEFORE]
+  &lt;INTERFACE|PUBLIC|PRIVATE&gt; [items1...]
+  [&lt;INTERFACE|PUBLIC|PRIVATE&gt; [items2...] ...]<span class="p">)</span>
+</code></pre></div></div>
+
+<p>上面的写法是可重定位的，<code class="highlighter-rouge">PRIVATE</code> 和 <code class="highlighter-rouge">PUBLIC</code> 会设置 targe t的 <code class="highlighter-rouge">INCLUDE_DIRECTORIES</code> 属性；<code class="highlighter-rouge">PUBLIC </code> 和 <code class="highlighter-rouge">INTERFACE</code> 会设置给 target 的 <code class="highlighter-rouge">INTERFACE_INCLUDE_DIRECTORIES</code> 属性；里面有的那两个参数叫做什么生成表达式，也不知这个翻译对不对，官网传送门<a href="https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html">cmake-generator-expressions</a></p>
+
+<h3 id="configure_package_config_file">configure_package_config_file</h3>
+
+<p><a href="https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html">https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html</a></p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">configure_package_config_file</span><span class="p">(</span>&lt;input&gt; &lt;output&gt;
+  INSTALL_DESTINATION &lt;path&gt;
+  [PATH_VARS &lt;var1&gt; &lt;var2&gt; ... &lt;varN&gt;]
+  [NO_SET_AND_CHECK_MACRO]
+  [NO_CHECK_REQUIRED_COMPONENTS_MACRO]
+  [INSTALL_PREFIX &lt;path&gt;]
+  <span class="p">)</span>
+</code></pre></div></div>
+
+<p>与 configure_file 差不多，但是这个用来写 cmake config 文件会好很多，<code class="highlighter-rouge">INSTALL_DESTINATION</code> config文件将要安装的位置，<code class="highlighter-rouge">PATH_VARS</code> 指定的变量，可以在 Config.cmake.in 文件中类似这样 <code class="highlighter-rouge">@PACKAGE_VAR1@</code> 引用，这种用法可重定位，而不是硬编码</p>
+
+<h3 id="write_basic_package_version_file">write_basic_package_version_file</h3>
+
+<p><a href="https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html">https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html</a></p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">write_basic_package_version_file</span><span class="p">(</span>&lt;filename&gt;
+  [VERSION &lt;major.minor.patch&gt;]
+  COMPATIBILITY &lt;AnyNewerVersion|SameMajorVersion|SameMinorVersion|ExactVersion&gt;
+  [ARCH_INDEPENDENT] <span class="p">)</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">VERSION</code> 不指定的话就用 <code class="highlighter-rouge">PROJECT_VERSION</code>，都没有指定的话就会报错；<code class="highlighter-rouge">COMPATIBILITY</code> 版本兼容，有好几个选项，具体看官网</p>
+
+<h3 id="install">install</h3>
+
+<p><a href="https://cmake.org/cmake/help/latest/command/install.html">https://cmake.org/cmake/help/latest/command/install.html</a></p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">install</span><span class="p">(</span>TARGETS &lt;target&gt;... [...]<span class="p">)</span>
+<span class="nb">install</span><span class="p">(</span>{FILES | PROGRAMS} &lt;file&gt;... [...]<span class="p">)</span>
+<span class="nb">install</span><span class="p">(</span>DIRECTORY &lt;dir&gt;... [...]<span class="p">)</span>
+<span class="nb">install</span><span class="p">(</span>SCRIPT &lt;file&gt; [...]<span class="p">)</span>
+<span class="nb">install</span><span class="p">(</span>CODE &lt;code&gt; [...]<span class="p">)</span>
+<span class="nb">install</span><span class="p">(</span>EXPORT &lt;export-name&gt; [...]<span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="targets">TARGETS</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>install(TARGETS targets... [EXPORT &lt;export-name&gt;]
+       [[ARCHIVE|LIBRARY|RUNTIME|OBJECTS|FRAMEWORK|BUNDLE|
+         PRIVATE_HEADER|PUBLIC_HEADER|RESOURCE]
+        [DESTINATION &lt;dir&gt;]
+        [PERMISSIONS permissions...]
+        [CONFIGURATIONS [Debug|Release|...]]
+        [COMPONENT &lt;component&gt;]
+        [NAMELINK_COMPONENT &lt;component&gt;]
+        [OPTIONAL] [EXCLUDE_FROM_ALL]
+        [NAMELINK_ONLY|NAMELINK_SKIP]
+       ] [...]
+       [INCLUDES DESTINATION [&lt;dir&gt; ...]]
+       )
+</code></pre></div></div>
+
+<h4 id="filesprograms">FILES|PROGRAMS</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>install(&lt;FILES|PROGRAMS&gt; files...
+        TYPE &lt;type&gt; | DESTINATION &lt;dir&gt;
+        [PERMISSIONS permissions...]
+        [CONFIGURATIONS [Debug|Release|...]]
+        [COMPONENT &lt;component&gt;]
+        [RENAME &lt;name&gt;] [OPTIONAL] [EXCLUDE_FROM_ALL])
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">TYPE</code> 取值以及默认路径；  <code class="highlighter-rouge">GNUInstallDirs Variable</code> 需要 <code class="highlighter-rouge">include(GNUInstallDirs)</code></p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">TYPE Argumen</th>
+      <th style="text-align: left">GNUInstallDirs Variable</th>
+      <th style="text-align: left">Built-In Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">BIN</td>
+      <td style="text-align: left">${CMAKE_INSTALL_BINDIR}</td>
+      <td style="text-align: left">bin</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">SBIN</td>
+      <td style="text-align: left">${CMAKE_INSTALL_SBINDIR}</td>
+      <td style="text-align: left">sbin</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LIB</td>
+      <td style="text-align: left">${CMAKE_INSTALL_LIBDIR}</td>
+      <td style="text-align: left">lib</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">INCLUDE</td>
+      <td style="text-align: left">${CMAKE_INSTALL_INCLUDEDIR}</td>
+      <td style="text-align: left">include</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">SYSCONF</td>
+      <td style="text-align: left">${CMAKE_INSTALL_SYSCONFDIR}</td>
+      <td style="text-align: left">etc</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">SHAREDSTATE</td>
+      <td style="text-align: left">${CMAKE_INSTALL_SHARESTATEDIR}</td>
+      <td style="text-align: left">com</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOCALSTATE</td>
+      <td style="text-align: left">${CMAKE_INSTALL_LOCALSTATEDIR}</td>
+      <td style="text-align: left">var</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RUNSTATE</td>
+      <td style="text-align: left">${CMAKE_INSTALL_RUNSTATEDIR}</td>
+      <td style="text-align: left">&lt;LOCALSTATE dir&gt;/run</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">DATA</td>
+      <td style="text-align: left">${CMAKE_INSTALL_DATADIR}</td>
+      <td style="text-align: left">&lt;DATAROOT dir&gt;</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">INFO</td>
+      <td style="text-align: left">${CMAKE_INSTALL_INFODIR}</td>
+      <td style="text-align: left">&lt;DATAROOT dir&gt;/info</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOCALE</td>
+      <td style="text-align: left">${CMAKE_INSTALL_LOCALEDIR}</td>
+      <td style="text-align: left">&lt;DATAROOT dir&gt;/locale</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">MAN</td>
+      <td style="text-align: left">${CMAKE_INSTALL_MANDIR}</td>
+      <td style="text-align: left">&lt;DATAROOT dir&gt;/man</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">DOC</td>
+      <td style="text-align: left">${CMAKE_INSTALL_DOCDIR}</td>
+      <td style="text-align: left">&lt;DATAROOT dir&gt;/doc</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>如果不指定 <code class="highlighter-rouge">PERMISSIONS</code> ，<code class="highlighter-rouge">FILES</code> 默认权限为 <code class="highlighter-rouge">OWNER_WRITE, OWNER_READ, GROUP_READ, WORLD_READ</code>，<code class="highlighter-rouge">PROGRAMS</code> 额外还有 <code class="highlighter-rouge">OWNER_EXECUTE, GROUP_EXECUTE, WORLD_EXECUTE</code> 权限</p>
+
+<h4 id="export">EXPORT</h4>
+
+<p>需要 install TARGETS 的时候 EXPORT 才行</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>install(EXPORT &lt;export-name&gt; DESTINATION &lt;dir&gt;
+        [NAMESPACE &lt;namespace&gt;] [[FILE &lt;name&gt;.cmake]|
+        [PERMISSIONS permissions...]
+        [CONFIGURATIONS [Debug|Release|...]]
+        [EXPORT_LINK_INTERFACE_LIBRARIES]
+        [COMPONENT &lt;component&gt;]
+        [EXCLUDE_FROM_ALL])
+</code></pre></div></div>
+
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>
