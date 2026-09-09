@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>Wireshark Lua 解析自定义协议 闻道</title>
+  <meta name="title" content="Wireshark Lua 解析自定义协议 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="Wireshark Lua 解析自定义协议 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/others/012" />
+  <meta property="og:title" content="Wireshark Lua 解析自定义协议 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/others/012" />
+  <meta property="twitter:title" content="Wireshark Lua 解析自定义协议 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/others/012" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?3b90f3f4d92bbbb5ded22436c3dfca48";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="wireshark-lua-解析自定义协议">Wireshark Lua 解析自定义协议</h1>
+
+<p>[TOC]</p>
+
+<h2 id="脚本放置位置">脚本放置位置</h2>
+
+<p>帮助 -&gt; 关于 -&gt; 文件夹；将脚本放在 lua 插件目录下，按下 <code class="highlighter-rouge">ctrl + shift +l</code> 即可加载</p>
+
+<h2 id="协议结构体">协议结构体</h2>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">Proto</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">magic</span> <span class="o">=</span> <span class="mh">0x0102ABCD</span><span class="p">;</span> <span class="c1">// 固定值</span>
+    <span class="kt">uint16_t</span> <span class="n">version</span><span class="p">;</span>
+    <span class="kt">uint16_t</span> <span class="n">type</span><span class="p">;</span> <span class="c1">// 0x101-MsgTypeFoo 0x201-MsgTypeBar 0x301-length为0</span>
+    <span class="kt">int64_t</span> <span class="n">timestamp</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">seq</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">length</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="n">payload</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="nc">MsgTypeFoo</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">foo</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">count</span><span class="p">;</span>
+
+    <span class="k">struct</span> <span class="nc">Data</span> <span class="p">{</span>
+        <span class="kt">int32_t</span> <span class="n">id</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="nc">MsgTypeBar</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">bar</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="n">data</span><span class="p">[</span><span class="mi">20</span><span class="p">];</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<h2 id="解析脚本">解析脚本</h2>
+
+<div class="language-lua highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- 创建协议，名称，描述</span>
+<span class="kd">local</span> <span class="n">proto</span> <span class="o">=</span> <span class="n">Proto</span><span class="p">(</span><span class="s1">'cp'</span><span class="p">,</span> <span class="s1">'Custom Udp Proto'</span><span class="p">)</span>
+
+<span class="c1">-- 添加字段，名称，描述，显示进制；名称可以在上方显示过滤的地方使用</span>
+<span class="kd">local</span> <span class="n">cp_version</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">uint16</span><span class="p">(</span><span class="s2">"cp.version"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">,</span> <span class="n">base</span><span class="p">.</span><span class="n">DEC</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">cp_type_val_str</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">[</span><span class="mh">0x101</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"foo"</span><span class="p">,</span>
+    <span class="p">[</span><span class="mh">0x201</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"bar"</span>
+<span class="p">}</span>
+<span class="kd">local</span> <span class="n">cp_type</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">uint16</span><span class="p">(</span><span class="s2">"cp.type"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">,</span> <span class="n">base</span><span class="p">.</span><span class="n">HEX</span><span class="p">,</span> <span class="n">cp_type_val_str</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">cp_timestamp</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">uint64</span><span class="p">(</span><span class="s2">"cp.timestamp"</span><span class="p">,</span> <span class="s2">"timestamp"</span><span class="p">,</span> <span class="n">base</span><span class="p">.</span><span class="n">DEC</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">cp_seq</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">uint32</span><span class="p">(</span><span class="s2">"cp.seq"</span><span class="p">,</span> <span class="s2">"seq"</span><span class="p">,</span> <span class="n">base</span><span class="p">.</span><span class="n">DEC</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">cp_length</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">uint32</span><span class="p">(</span><span class="s2">"cp.length"</span><span class="p">,</span> <span class="s2">"length"</span><span class="p">,</span> <span class="n">base</span><span class="p">.</span><span class="n">DEC</span><span class="p">)</span>
+
+<span class="n">proto</span><span class="p">.</span><span class="n">fields</span> <span class="o">=</span> <span class="p">{</span> <span class="n">cp_version</span><span class="p">,</span> <span class="n">cp_type</span><span class="p">,</span> <span class="n">cp_timestamp</span><span class="p">,</span> <span class="n">cp_seq</span><span class="p">,</span> <span class="n">cp_length</span> <span class="p">}</span>
+
+<span class="kd">local</span> <span class="n">foo_proto</span> <span class="o">=</span> <span class="n">Proto</span><span class="p">(</span><span class="s1">'cp.foo'</span><span class="p">,</span> <span class="s1">'Custom Udp Proto: Foo'</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">foo_foo</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">uint32</span><span class="p">(</span><span class="s2">"cp.foo.foo"</span><span class="p">,</span> <span class="s2">"foo"</span><span class="p">,</span> <span class="n">base</span><span class="p">.</span><span class="n">DEC</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">foo_count</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">uint32</span><span class="p">(</span><span class="s2">"cp.foo.count"</span><span class="p">,</span> <span class="s2">"count"</span><span class="p">,</span> <span class="n">base</span><span class="p">.</span><span class="n">DEC</span><span class="p">)</span>
+<span class="n">foo_proto</span><span class="p">.</span><span class="n">fields</span> <span class="o">=</span> <span class="p">{</span> <span class="n">foo_foo</span><span class="p">,</span> <span class="n">foo_count</span> <span class="p">}</span>
+
+<span class="k">function</span> <span class="nc">foo_proto</span><span class="p">.</span><span class="nf">dissector</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">pinfo</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+    <span class="kd">local</span> <span class="n">subtree</span> <span class="o">=</span> <span class="n">tree</span><span class="p">:</span><span class="n">add</span><span class="p">(</span><span class="n">foo_proto</span><span class="p">,</span> <span class="n">buffer</span><span class="p">())</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">foo_foo</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">foo_count</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="kd">local</span> <span class="n">count</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span><span class="n">le_uint</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">then</span>
+        <span class="k">return</span> <span class="n">buffer</span><span class="p">:</span><span class="n">len</span><span class="p">()</span>
+    <span class="k">end</span>
+    <span class="kd">local</span> <span class="n">foo_data_tree</span> <span class="o">=</span> <span class="n">subtree</span><span class="p">:</span><span class="n">add</span><span class="p">(</span><span class="n">buffer</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">count</span> <span class="o">*</span> <span class="mi">4</span><span class="p">),</span> <span class="s2">"data"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">count</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">do</span>
+        <span class="n">foo_data_tree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">buffer</span><span class="p">(</span><span class="mi">8</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="nb">string.format</span><span class="p">(</span><span class="s2">"[%d] {id: %d}"</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">8</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span><span class="n">le_int</span><span class="p">()))</span>
+    <span class="k">end</span>
+    <span class="k">return</span> <span class="n">buffer</span><span class="p">:</span><span class="n">len</span><span class="p">()</span>
+<span class="k">end</span>
+
+<span class="kd">local</span> <span class="n">bar_proto</span> <span class="o">=</span> <span class="n">Proto</span><span class="p">(</span><span class="s1">'cp.bar'</span><span class="p">,</span> <span class="s1">'Custom Udp Proto: Bar'</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">bar_bar</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">uint32</span><span class="p">(</span><span class="s2">"cp.bar.bar"</span><span class="p">,</span> <span class="s2">"bar"</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">bar_data</span> <span class="o">=</span> <span class="n">ProtoField</span><span class="p">.</span><span class="n">stringz</span><span class="p">(</span><span class="s2">"cp.bar.data"</span><span class="p">,</span> <span class="s2">"data"</span><span class="p">)</span>
+<span class="n">bar_proto</span><span class="p">.</span><span class="n">fields</span> <span class="o">=</span> <span class="p">{</span> <span class="n">bar_bar</span><span class="p">,</span> <span class="n">bar_data</span> <span class="p">}</span>
+
+<span class="k">function</span> <span class="nc">bar_proto</span><span class="p">.</span><span class="nf">dissector</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">pinfo</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+    <span class="kd">local</span> <span class="n">subtree</span> <span class="o">=</span> <span class="n">tree</span><span class="p">:</span><span class="n">add</span><span class="p">(</span><span class="n">bar_proto</span><span class="p">,</span> <span class="n">buffer</span><span class="p">())</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">bar_bar</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add</span><span class="p">(</span><span class="n">bar_data</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">buffer</span><span class="p">:</span><span class="n">len</span><span class="p">()</span> <span class="o">-</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">buffer</span><span class="p">:</span><span class="n">len</span><span class="p">()</span>
+<span class="k">end</span>
+
+<span class="kd">local</span> <span class="k">function</span> <span class="nf">packet_heuristic_dissector</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">pinfo</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+    <span class="kd">local</span> <span class="n">proto_length</span> <span class="o">=</span> <span class="mi">24</span>
+    <span class="kd">local</span> <span class="n">len</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">:</span><span class="n">len</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">len</span> <span class="o">&lt;</span> <span class="n">proto_length</span> <span class="k">then</span>
+        <span class="k">return</span> <span class="kc">false</span>
+    <span class="k">end</span>
+
+    <span class="k">if</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span><span class="n">le_uint</span><span class="p">()</span> <span class="o">~=</span> <span class="mh">0x0102ABCD</span> <span class="k">then</span>
+        <span class="k">return</span> <span class="kc">false</span>
+    <span class="k">end</span>
+
+    <span class="c1">-- 赋值协议列</span>
+    <span class="n">pinfo</span><span class="p">.</span><span class="n">cols</span><span class="p">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="nb">string.format</span><span class="p">(</span><span class="s2">"cp-0x%04X"</span><span class="p">,</span> <span class="nb">tostring</span><span class="p">(</span><span class="n">buffer</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span><span class="n">le_uint</span><span class="p">()))</span>
+
+    <span class="c1">-- 字段解析</span>
+    <span class="kd">local</span> <span class="n">subtree</span> <span class="o">=</span> <span class="n">tree</span><span class="p">:</span><span class="n">add</span><span class="p">(</span><span class="n">proto</span><span class="p">,</span> <span class="n">buffer</span><span class="p">()):</span><span class="n">set_len</span><span class="p">(</span><span class="n">proto_length</span><span class="p">)</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">cp_version</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">cp_type</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">cp_timestamp</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">cp_seq</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">subtree</span><span class="p">:</span><span class="n">add_le</span><span class="p">(</span><span class="n">cp_length</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="kd">local</span> <span class="n">payload_length</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span><span class="n">le_uint</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">payload_length</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">then</span>
+        <span class="k">return</span> <span class="kc">true</span>
+    <span class="k">end</span>
+    <span class="k">if</span> <span class="n">len</span> <span class="o">&lt;</span> <span class="n">proto_length</span> <span class="o">+</span> <span class="n">payload_length</span> <span class="k">then</span>
+        <span class="n">subtree</span><span class="p">:</span><span class="n">set_text</span><span class="p">(</span><span class="nb">string.format</span><span class="p">(</span><span class="s2">"Custom Udp Proto Error: headerLen(%d) + payloadLen(%d) &gt; len(%d)"</span><span class="p">,</span>
+                <span class="n">proto_length</span><span class="p">,</span> <span class="n">payload_length</span><span class="p">,</span> <span class="n">len</span><span class="p">))</span>
+    <span class="k">end</span>
+    <span class="kd">local</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span><span class="n">le_uint</span><span class="p">()</span>
+    <span class="kd">local</span> <span class="n">remaining_len</span> <span class="o">=</span> <span class="n">len</span> <span class="o">-</span> <span class="n">proto_length</span>
+    <span class="kd">local</span> <span class="n">remaining_buffer</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">(</span><span class="n">proto_length</span><span class="p">,</span> <span class="n">len</span> <span class="o">-</span> <span class="n">proto_length</span><span class="p">):</span><span class="n">tvb</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="mh">0x101</span> <span class="k">then</span>
+        <span class="n">remaining_len</span> <span class="o">=</span> <span class="n">remaining_len</span> <span class="o">-</span> <span class="n">foo_proto</span><span class="p">.</span><span class="n">dissector</span><span class="p">(</span><span class="n">remaining_buffer</span><span class="p">,</span> <span class="n">pinfo</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+    <span class="k">elseif</span> <span class="nb">type</span> <span class="o">==</span> <span class="mh">0x201</span> <span class="k">then</span>
+        <span class="n">remaining_len</span> <span class="o">=</span> <span class="n">remaining_len</span> <span class="o">-</span> <span class="n">bar_proto</span><span class="p">.</span><span class="n">dissector</span><span class="p">(</span><span class="n">remaining_buffer</span><span class="p">,</span> <span class="n">pinfo</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+    <span class="k">end</span>
+    <span class="k">if</span> <span class="n">remaining_len</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">then</span>
+        <span class="n">Dissector</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data"</span><span class="p">):</span><span class="n">call</span><span class="p">(</span><span class="n">buffer</span><span class="p">(</span><span class="n">len</span> <span class="o">-</span> <span class="n">remaining_len</span><span class="p">,</span> <span class="n">remaining_len</span><span class="p">):</span><span class="n">tvb</span><span class="p">(),</span> <span class="n">pinfo</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="k">return</span> <span class="kc">true</span>
+<span class="k">end</span>
+
+<span class="c1">-- 注册协议到udp</span>
+<span class="n">proto</span><span class="p">:</span><span class="n">register_heuristic</span><span class="p">(</span><span class="s2">"udp"</span><span class="p">,</span> <span class="n">packet_heuristic_dissector</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="效果展示">效果展示</h2>
+
+<p><img src="img/012/001.png" alt="image-20241026225801733" /></p>
+
+<h2 id="附件">附件</h2>
+
+<h3 id="官方文档">官方文档</h3>
+
+<p><a href="https://www.wireshark.org/docs/wsdg_html_chunked/">https://www.wireshark.org/docs/wsdg_html_chunked/</a></p>
+
+<p>第十章和第十一章主要讲 lua 脚本</p>
+
+<h3 id="测试用-pcap">测试用 pcap</h3>
+
+<p><a href="https://zcteo.github.io/pages-assitant/others/012/12345.pcap">https://zcteo.github.io/pages-assitant/others/012/12345.pcap</a></p>
+
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

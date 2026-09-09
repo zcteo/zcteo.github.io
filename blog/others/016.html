@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>vllm 闻道</title>
+  <meta name="title" content="vllm 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="vllm 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/others/016" />
+  <meta property="og:title" content="vllm 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/others/016" />
+  <meta property="twitter:title" content="vllm 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/others/016" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?3b90f3f4d92bbbb5ded22436c3dfca48";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="vllm">vllm</h1>
+
+<h2 id="前言">前言</h2>
+
+<p>目前手上有几张 A100(80G) 显卡，驱动只支持 cuda 12.9；但是现在的大模型都不支持直接部署，需要社区适配，以及自己折腾一部分，故记录在此</p>
+
+<h2 id="部署-deepseek-v4-flash">部署 deepseek-v4-flash</h2>
+
+<p>资源：单机 8xA100</p>
+
+<h3 id="镜像">镜像</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 该镜像是基于 cuda 13.0 的</span>
+docker pull openguardrails/vllm-dsv4-0731-sm80:latest
+
+<span class="c"># 我基于上述镜像修改适配 12.9</span>
+docker pull registry.cn-chengdu.aliyuncs.com/zcteo/vllm:deepseek-v4-sm80-cu129
+</code></pre></div></div>
+
+<h3 id="部署命令">部署命令</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vllm serve /models/DeepSeek-V4-Flash-0731 <span class="se">\</span>
+    <span class="nt">--host</span> 0.0.0.0 <span class="se">\</span>
+    <span class="nt">--port</span> 8000 <span class="se">\</span>
+    <span class="nt">--served-model-name</span> deepseek-v4-flash <span class="se">\</span>
+    <span class="nt">--trust-remote-code</span> <span class="se">\</span>
+    <span class="nt">--tensor-parallel-size</span> 8 <span class="se">\</span>
+    <span class="nt">--enable-expert-parallel</span> <span class="se">\</span>
+    <span class="nt">--kv-cache-dtype</span> fp8 <span class="se">\</span>
+    <span class="nt">--block-size</span> 256 <span class="se">\</span>
+    <span class="nt">--gpu-memory-utilization</span> 0.90 <span class="se">\</span>
+    <span class="nt">--max-model-len</span> 1048576 <span class="se">\</span>
+    <span class="nt">--max-num-batched-tokens</span> 16384 <span class="se">\</span>
+    <span class="nt">--max-num-seqs</span> 8 <span class="se">\</span>
+    <span class="nt">--enable-chunked-prefill</span> <span class="se">\</span>
+    <span class="nt">--enable-auto-tool-choice</span> <span class="se">\</span>
+    <span class="nt">--tokenizer-mode</span> deepseek_v4 <span class="se">\</span>
+    <span class="nt">--tool-call-parser</span> deepseek_v4 <span class="se">\</span>
+    <span class="nt">--reasoning-parser</span> deepseek_v4 <span class="se">\</span>
+    <span class="nt">--load-format</span> auto <span class="se">\</span>
+    <span class="nt">--default-chat-template-kwargs</span> <span class="s1">'{"enable_thinking":true,"reasoning_effort":"high"}'</span> <span class="se">\</span>
+    <span class="nt">--speculative-config</span> <span class="s1">'{"method":"dspark","num_speculative_tokens":5,"draft_sample_method":"greedy"}'</span>
+</code></pre></div></div>
+
+<h3 id="性能">性能</h3>
+
+<ul>
+  <li>1M 上下文最大并发：2.68x</li>
+  <li>单请求生成速度：170 tokens/s</li>
+</ul>
+
+<h2 id="部署-glm-52-glm-53">部署 glm-5.2 glm-5.3</h2>
+
+<p>资源：双机 8xA100，共计 16xA100</p>
+
+<h3 id="镜像-1">镜像</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker pull openguardrails/vllm-glm52-sm80:764b6bfa0-pr47629-pr47644
+
+<span class="c"># 上述镜像国内备份</span>
+docker pull registry.cn-chengdu.aliyuncs.com/zcteo/vllm:glm52-sm80-cu129
+</code></pre></div></div>
+
+<h3 id="ray-配置">ray 配置</h3>
+
+<p><strong>head</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">NCCL_IB_DISABLE</span><span class="o">=</span>0
+<span class="nb">export </span><span class="nv">NCCL_SOCKET_IFNAME</span><span class="o">=</span>eth2
+<span class="nb">export </span><span class="nv">NCCL_IB_HCA</span><span class="o">=</span>mlx5_1,mlx5_2,mlx5_3,mlx5_4
+<span class="nb">export </span><span class="nv">GLOO_SOCKET_IFNAME</span><span class="o">=</span>eth2
+<span class="nb">export </span><span class="nv">VLLM_HOST_IP</span><span class="o">=</span><span class="si">$(</span>ip <span class="nt">-4</span> <span class="nt">-br</span> addr show eth2 | <span class="nb">awk</span> <span class="s1">'{print $3}'</span> | <span class="nb">cut</span> <span class="nt">-d</span><span class="s1">'/'</span> <span class="nt">-f1</span><span class="si">)</span>
+
+ray stop <span class="nt">-f</span>
+killall <span class="nt">-9</span> ray vllm
+<span class="nb">rm</span> <span class="nt">-rf</span> /tmp/ray
+
+ray start <span class="nt">--head</span> <span class="nt">--port</span><span class="o">=</span>6379 <span class="nt">--node-ip-address</span><span class="o">=</span><span class="nv">$VLLM_HOST_IP</span>
+</code></pre></div></div>
+
+<p><strong>worker</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"use </span><span class="nv">$0</span><span class="s2"> &lt;head ip&gt;"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
+</span><span class="nb">export </span><span class="nv">NCCL_IB_DISABLE</span><span class="o">=</span>0
+<span class="nb">export </span><span class="nv">NCCL_SOCKET_IFNAME</span><span class="o">=</span>eth2
+<span class="nb">export </span><span class="nv">NCCL_IB_HCA</span><span class="o">=</span>mlx5_1,mlx5_2,mlx5_3,mlx5_4
+<span class="nb">export </span><span class="nv">GLOO_SOCKET_IFNAME</span><span class="o">=</span>eth2
+<span class="nb">export </span><span class="nv">VLLM_HOST_IP</span><span class="o">=</span><span class="si">$(</span>ip <span class="nt">-4</span> <span class="nt">-br</span> addr show eth2 | <span class="nb">awk</span> <span class="s1">'{print $3}'</span> | <span class="nb">cut</span> <span class="nt">-d</span><span class="s1">'/'</span> <span class="nt">-f1</span><span class="si">)</span>
+
+ray stop <span class="nt">-f</span>
+killall <span class="nt">-9</span> ray vllm
+<span class="nb">rm</span> <span class="nt">-rf</span> /tmp/ray
+
+ray start <span class="nt">--address</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">1</span><span class="k">}</span><span class="s2">:6379"</span> <span class="nt">--node-ip-address</span><span class="o">=</span><span class="nv">$VLLM_HOST_IP</span>
+</code></pre></div></div>
+
+<h3 id="部署命令-1">部署命令</h3>
+
+<p>在 head 节点执行</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">RAY_ADDRESS</span><span class="o">=</span><span class="s2">"auto"</span>
+
+vllm serve /models/GLM-5.3-NVFP4 <span class="se">\</span>
+    <span class="nt">--served-model-name</span> glm-5.3 <span class="se">\</span>
+    <span class="nt">--host</span> 0.0.0.0 <span class="nt">--port</span> 8000 <span class="se">\</span>
+    <span class="nt">--trust-remote-code</span> <span class="se">\</span>
+    <span class="nt">--enable-expert-parallel</span> <span class="se">\</span>
+    <span class="nt">--pipeline-parallel-size</span> 2 <span class="se">\</span>
+    <span class="nt">--tensor-parallel-size</span> 8 <span class="se">\</span>
+    <span class="nt">--distributed-executor-backend</span> ray <span class="se">\</span>
+    <span class="nt">--max-num-seqs</span> 8 <span class="se">\</span>
+    <span class="nt">--dtype</span> bfloat16 <span class="se">\</span>
+    <span class="nt">--kv-cache-dtype</span> bfloat16 <span class="se">\</span>
+    <span class="nt">--max_model_len</span> 524288 <span class="se">\</span>
+    <span class="nt">--block-size</span> 128 <span class="se">\</span>
+    <span class="nt">--enable-auto-tool-choice</span> <span class="se">\</span>
+    <span class="nt">--performance-mode</span> balanced <span class="se">\</span>
+    <span class="nt">--gpu-memory-utilization</span> 0.94 <span class="se">\</span>
+    <span class="nt">--tool-call-parser</span> glm47 <span class="se">\</span>
+    <span class="nt">--reasoning-parser</span> glm45 <span class="se">\</span>
+    <span class="nt">--load-format</span> auto <span class="se">\</span>
+    <span class="nt">--default-chat-template-kwargs</span> <span class="s1">'{"enable_thinking":true,"reasoning_effort":"high"}'</span>
+</code></pre></div></div>
+
+<h3 id="性能-1">性能</h3>
+
+<ul>
+  <li>512K 上下文最大并发：1.83x</li>
+  <li>单请求生成速度：50 tokens/s</li>
+</ul>
+
+<p>尝试过将 pp 和 tp 都设置为 4，可以支持 1M 上下文，但是单请求生成速度下降到 35 tokens/s</p>
+
+<h2 id="部署-glm-53-flash">部署 glm-5.3-flash</h2>
+
+<p>资源：单机 8xA100</p>
+
+<h3 id="镜像-2">镜像</h3>
+
+<p>源码：<a href="https://github.com/wtdcode/vllm-backport">https://github.com/wtdcode/vllm-backport</a></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 该镜像是基于 cuda 13.0 的</span>
+docker pull lazymio/vllm-backport:latest-sm80
+
+<span class="c"># 我基于上述镜像修改适配 12.9</span>
+docker pull registry.cn-chengdu.aliyuncs.com/zcteo/vllm:backport-v0.12.0-sm80-cu129
+</code></pre></div></div>
+
+<h3 id="部署命令-2">部署命令</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">VLLM_LOGGING_COLOR</span><span class="o">=</span>1
+<span class="nb">export </span><span class="nv">VLLM_USE_FLASHINFER_SAMPLER</span><span class="o">=</span>0  <span class="c"># 不加这个要报错</span>
+
+vllm serve /models/GLM-5.3-Flash-NVFP4 <span class="se">\</span>
+    <span class="nt">--served-model-name</span> glm-5.3-flash <span class="se">\</span>
+    <span class="nt">--host</span> 0.0.0.0 <span class="nt">--port</span> 8000 <span class="se">\</span>
+    <span class="nt">--trust-remote-code</span> <span class="se">\</span>
+    <span class="nt">--enable-expert-parallel</span> <span class="se">\</span>
+    <span class="nt">--tensor-parallel-size</span> 8 <span class="se">\</span>
+    <span class="nt">--max-num-seqs</span> 8 <span class="se">\</span>
+    <span class="nt">--max_model_len</span> 1048576 <span class="se">\</span>
+    <span class="nt">--block-size</span> 128 <span class="se">\</span>
+    <span class="nt">--enable-auto-tool-choice</span> <span class="se">\</span>
+    <span class="nt">--performance-mode</span> balanced <span class="se">\</span>
+    <span class="nt">--gpu-memory-utilization</span> 0.92 <span class="se">\</span>
+    <span class="nt">--tool-call-parser</span> glm47 <span class="se">\</span>
+    <span class="nt">--reasoning-parser</span> glm45 <span class="se">\</span>
+    <span class="nt">--load-format</span> auto <span class="se">\</span>
+    <span class="nt">--default-chat-template-kwargs</span> <span class="s1">'{"enable_thinking":true,"reasoning_effort":"high"}'</span> <span class="se">\</span>
+    <span class="nt">--speculative-config</span> <span class="s1">'{"method":"mtp","num_speculative_tokens":3}'</span>
+</code></pre></div></div>
+
+<h3 id="性能-2">性能</h3>
+
+<ul>
+  <li>1M 上下文最大并发：3.39x</li>
+  <li>单请求生成速度：110 tokens/s</li>
+</ul>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

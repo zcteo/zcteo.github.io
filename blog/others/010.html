@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>python 自动获取网关地址并开启代理 闻道</title>
+  <meta name="title" content="python 自动获取网关地址并开启代理 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="python 自动获取网关地址并开启代理 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/others/010" />
+  <meta property="og:title" content="python 自动获取网关地址并开启代理 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/others/010" />
+  <meta property="twitter:title" content="python 自动获取网关地址并开启代理 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/others/010" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?3b90f3f4d92bbbb5ded22436c3dfca48";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="python-自动获取网关地址并开启代理">python 自动获取网关地址并开启代理</h1>
+
+<p>[toc]</p>
+
+<h2 id="前言">前言</h2>
+
+<h3 id="背景">背景</h3>
+
+<p>有线网络能访问内网和公网，但是很多公网地址无法访问</p>
+
+<p>无线网络能访问公网，不能访问内网，该路由器上有代理服务，限时开启；路由器 ip 前缀为 192.168.0.0/16，不固定</p>
+
+<p>若仅连接无线网络，无法访问内网</p>
+
+<h3 id="需求">需求</h3>
+
+<p>同时连接有线网络和无线网络</p>
+
+<p>默认走有线网络</p>
+
+<p>当路由器代理服务开启时，分流一部分访问到无线路由器代理服务</p>
+
+<h2 id="实现方案">实现方案</h2>
+
+<p>使用脚本定时检测无线路由器代理是否开启，若开启，则自动设置 Windows 代理服务，并提供 pac 分流脚本</p>
+
+<p>pac.py</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">winreg</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">socket</span> <span class="kn">import</span> <span class="n">socket</span><span class="p">,</span> <span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="n">SHUT_RDWR</span>
+<span class="kn">from</span> <span class="nn">http.server</span> <span class="kn">import</span> <span class="n">BaseHTTPRequestHandler</span><span class="p">,</span> <span class="n">HTTPServer</span>
+
+
+<span class="k">class</span> <span class="nc">HttpHandler</span><span class="p">(</span><span class="n">BaseHTTPRequestHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">do_GET</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">path</span> <span class="o">!=</span> <span class="s">'/'</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">end_headers</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">server</span> <span class="o">==</span> <span class="s">''</span><span class="p">:</span>
+                <span class="n">response_str</span> <span class="o">=</span> <span class="s">"function FindProxyForURL(url, host) { return 'DIRECT'}"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response_str</span> <span class="o">=</span> <span class="s">'''
+function FindProxyForURL(url, host) {
+    if (/^127\.0\.0\.1$|^localhost$|^10\./.test(host) ||
+        /^172\.1[6-9]\.|^172\.2[0-9]\.|^172\.3[0-1]\./.test(host) ||
+        /^192\.168\./.test(host)) {
+        return 'DIRECT'
+    } 
+    
+    if (/geely/.test(host) || /oss/.test(host)) {
+        return 'DIRECT'
+    }
+'''</span>
+                <span class="n">response_str</span> <span class="o">+=</span> <span class="s">"    return 'PROXY "</span> <span class="o">+</span> <span class="n">server</span> <span class="o">+</span> <span class="s">":8080' </span><span class="se">\n</span><span class="s">}"</span>
+        <span class="c1"># print(response_str)
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">send_header</span><span class="p">(</span><span class="s">'Content-type'</span><span class="p">,</span> <span class="s">'text/plain; charset=utf-8'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">end_headers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">wfile</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">response_str</span><span class="p">.</span><span class="n">encode</span><span class="p">())</span>
+
+
+<span class="k">def</span> <span class="nf">sys_proxy</span><span class="p">(</span><span class="n">enable</span><span class="p">):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">'http://127.0.0.1:8080'</span> <span class="k">if</span> <span class="n">enable</span> <span class="k">else</span> <span class="s">''</span>
+    <span class="n">reg_path</span> <span class="o">=</span> <span class="s">r'Software\Microsoft\Windows\CurrentVersion\Internet Settings'</span>
+    <span class="n">reg_key</span> <span class="o">=</span> <span class="n">winreg</span><span class="p">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">winreg</span><span class="p">.</span><span class="n">HKEY_CURRENT_USER</span><span class="p">,</span> <span class="n">reg_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="p">.</span><span class="n">KEY_WRITE</span><span class="p">)</span>
+    <span class="n">winreg</span><span class="p">.</span><span class="n">SetValueEx</span><span class="p">(</span><span class="n">reg_key</span><span class="p">,</span> <span class="s">'AutoConfigURL'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="p">.</span><span class="n">REG_SZ</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">server</span> <span class="o">!=</span> <span class="s">''</span><span class="p">:</span>
+        <span class="c1"># 为了显示正在用的代理服务器
+</span>        <span class="n">winreg</span><span class="p">.</span><span class="n">SetValueEx</span><span class="p">(</span><span class="n">reg_key</span><span class="p">,</span> <span class="s">'ProxyServer'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="p">.</span><span class="n">REG_SZ</span><span class="p">,</span> <span class="s">f'http://</span><span class="si">{</span><span class="n">server</span><span class="si">}</span><span class="s">:8080'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">enable</span><span class="p">:</span>
+        <span class="n">winreg</span><span class="p">.</span><span class="n">SetValueEx</span><span class="p">(</span><span class="n">reg_key</span><span class="p">,</span> <span class="s">'ProxyEnable'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="p">.</span><span class="n">REG_DWORD</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">cleanup</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">http</span>
+    <span class="k">global</span> <span class="n">running</span>
+    <span class="n">running</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">sys_proxy</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">os</span><span class="p">.</span><span class="n">kill</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">getpid</span><span class="p">(),</span> <span class="mi">9</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">signal_handler</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+    <span class="n">cleanup</span><span class="p">()</span>
+
+
+<span class="n">signal</span><span class="p">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="p">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">signal_handler</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">sys</span><span class="p">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s">"win32"</span><span class="p">:</span>
+    <span class="n">signal</span><span class="p">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="p">.</span><span class="n">SIGHUP</span><span class="p">,</span> <span class="n">signal_handler</span><span class="p">)</span>
+
+<span class="n">server</span> <span class="o">=</span> <span class="s">''</span>
+<span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="p">.</span><span class="n">Lock</span><span class="p">()</span>
+<span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="n">sys_proxy</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">http</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">((</span><span class="s">'127.0.0.1'</span><span class="p">,</span> <span class="mi">8080</span><span class="p">),</span> <span class="n">HttpHandler</span><span class="p">)</span>
+<span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="p">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">http</span><span class="p">.</span><span class="n">serve_forever</span><span class="p">)</span>
+<span class="n">thread</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
+<span class="n">ip</span> <span class="o">=</span> <span class="s">''</span>
+<span class="k">while</span> <span class="n">running</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ip</span> <span class="o">==</span> <span class="s">''</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">subprocess</span><span class="p">.</span><span class="n">check_output</span><span class="p">(</span><span class="s">'ipconfig | findstr 默认网关 | findstr 192.168'</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="n">out</span><span class="p">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'gbk'</span><span class="p">).</span><span class="n">split</span><span class="p">(</span><span class="s">':'</span><span class="p">)[</span><span class="mi">1</span><span class="p">].</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">subprocess</span><span class="p">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="s">''</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">continue</span>
+    <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sock</span><span class="p">.</span><span class="n">settimeout</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">sock</span><span class="p">.</span><span class="n">connect</span><span class="p">((</span><span class="n">ip</span><span class="p">,</span> <span class="mi">8080</span><span class="p">))</span>
+        <span class="n">sock</span><span class="p">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">SHUT_RDWR</span><span class="p">)</span>
+    <span class="k">except</span> <span class="nb">TimeoutError</span><span class="p">:</span>
+        <span class="n">ip</span> <span class="o">=</span> <span class="s">''</span>
+    <span class="n">sock</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">server</span> <span class="o">!=</span> <span class="n">ip</span> <span class="ow">and</span> <span class="n">running</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+            <span class="n">server</span> <span class="o">=</span> <span class="n">ip</span>
+            <span class="n">sys_proxy</span><span class="p">(</span><span class="n">server</span> <span class="o">!=</span> <span class="s">''</span><span class="p">)</span>
+
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">sys_proxy</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="加到系统自启">加到系统自启</h2>
+
+<p>不知道为什么，我这个脚本使用 pythonw 启动的话，本地的 8080 端口就不通了</p>
+
+<p>所以就使用 vbs 来启动无窗口模式</p>
+
+<p>start.vbs</p>
+
+<pre><code class="language-vbs">Set WshShell = CreateObject("WScript.Shell")
+WshShell.Run "python D:\documents\pycharm\pac\pac.py", 0, False
+</code></pre>
+
+<p><code class="highlighter-rouge">win + r</code> 打开运行窗口，输入 <code class="highlighter-rouge">shell:startup</code>，将 start.vbs 放到打开的文件夹即可开机自启</p>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

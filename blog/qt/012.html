@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>使用 CMake 编译 Qt 6.5 闻道</title>
+  <meta name="title" content="使用 CMake 编译 Qt 6.5 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="使用 CMake 编译 Qt 6.5 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/qt/012" />
+  <meta property="og:title" content="使用 CMake 编译 Qt 6.5 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/qt/012" />
+  <meta property="twitter:title" content="使用 CMake 编译 Qt 6.5 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/qt/012" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?3b90f3f4d92bbbb5ded22436c3dfca48";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="使用-cmake-编译-qt-65">使用 CMake 编译 Qt 6.5</h1>
+
+<p>由于 qt6 开始使用 CMake 作为默认的编译配置框架，在原有的编译文章基础上新增了改文章</p>
+
+<p>编译机器的版本低一点的话，兼容性会好很多，所以本文使用 Ubuntu 20.04 系统环境编译</p>
+
+<h2 id="基础工具">基础工具</h2>
+
+<ul>
+  <li>cmake</li>
+  <li>gcc</li>
+  <li>g++</li>
+  <li>make</li>
+  <li>python3</li>
+  <li>python3-pip</li>
+</ul>
+
+<h2 id="本机编译">本机编译</h2>
+
+<h3 id="安装依赖">安装依赖</h3>
+
+<p>现在 Ubuntu 等系统以及从 x11 切换到 Wayland 了，同时提供编译 Wayland 的方法</p>
+
+<p>Wayland 只支持 OpenGL ES；不支持 OpenGL</p>
+
+<h4 id="qt-库">Qt 库</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># opengl</span>
+apt <span class="nb">install </span>mesa-common-dev <span class="nt">-y</span>
+<span class="c"># 字体</span>
+apt <span class="nb">install </span>libfontconfig1-dev libfreetype6-dev <span class="nt">-y</span>
+<span class="c"># alsa开发库及其工具</span>
+apt <span class="nb">install </span>libasound2-dev alsa-utils <span class="nt">-y</span>
+<span class="c"># pulseaudio开发库及服务</span>
+apt <span class="nb">install </span>libpulse-dev pulseaudio <span class="nt">-y</span>
+<span class="c"># 键盘</span>
+apt <span class="nb">install </span>libxkbcommon-dev <span class="nt">-y</span>
+<span class="c"># xcb QPA 的依赖 按照qt文档来就OK https://doc.qt.io/qt-6.5/linux-requirements.html</span>
+apt <span class="nb">install </span>libinput-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-xinput-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libx11-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libx11-xcb-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxext-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxfixes-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxi-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxrender-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-cursor-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-glx0-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-keysyms1-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-image0-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-shm0-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-icccm4-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-sync-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-xfixes0-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-shape0-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-randr0-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-render-util0-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-util-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-xinerama0-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxcb-xkb-dev <span class="nt">-y</span>
+apt <span class="nb">install </span>libxkbcommon-x11-dev <span class="nt">-y</span>
+
+<span class="c"># Wayland</span>
+apt <span class="nb">install </span>libwayland-dev libwayland-egl-backend-dev
+<span class="c"># opengles2</span>
+apt <span class="nb">install </span>libgles2-mesa-dev
+</code></pre></div></div>
+
+<h4 id="qtwebengine">QtWebEngine</h4>
+
+<p>如果不需要 QtWebEngine，直接跳过这一章</p>
+
+<p>ubuntu 20 apt 直接安装的 cmake 和 nodejs 的版本达不到要求，手动安装</p>
+
+<p>cmake &gt;= 3.19 <a href="https://cmake.org/download/">https://cmake.org/download/</a></p>
+
+<p>nodejs &gt;= 12 <a href="https://nodejs.org/en/download/prebuilt-binaries">https://nodejs.org/en/download/prebuilt-binaries</a></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip3 <span class="nb">install </span>html5lib
+apt <span class="nb">install </span>ninja-build bison flex gperf libnss3-dev libdbus-1-dev libcups2-dev <span class="nt">-y</span>
+<span class="c"># x11 需要的</span>
+apt <span class="nb">install </span>libxcursor-dev libxcomposite-dev libxrandr-dev libxtst-dev libxshmfence-dev libxkbfile-dev libxdamage-dev <span class="nt">-y</span>
+</code></pre></div></div>
+
+<h4 id="qtdoc">QtDoc</h4>
+
+<p>不需要文档的可以跳过，这玩意挺大的</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt <span class="nb">install </span>libclang-dev clang <span class="nt">-y</span>
+</code></pre></div></div>
+
+<p>文档如果配置成功，需要单独编译</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake <span class="nt">--build</span> <span class="nb">.</span> <span class="nt">--target</span> docs <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+</code></pre></div></div>
+
+<p>还需要手动拷贝到安装目录下</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cp -ar doc/* /opt/qt6.5/doc
+</code></pre></div></div>
+
+<h3 id="编译">编译</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>build <span class="o">&amp;&amp;</span> <span class="nb">cd </span>build
+cmake .. <span class="nt">-DCMAKE_INSTALL_PREFIX</span><span class="o">=</span>/opt/qt6.5
+cmake <span class="nt">--build</span> <span class="nb">.</span> <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+cmake <span class="nt">--install</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>请确保如下配置出现在 <code class="highlighter-rouge">have been found</code>，不然带界面的程序在 x11 起不来</p>
+
+<p><img src="img/012/01.png" alt="01" /></p>
+
+<p>如果是 Wayland，请确认有以下带 EGL yes 的输出</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Qt Wayland Drivers:
+  EGL .................................... <span class="nb">yes
+  </span>Raspberry Pi ........................... no
+  DRM EGL ................................ <span class="nb">yes
+  </span>libhybris EGL .......................... no
+  Linux dma-buf server buffer integration  <span class="nb">yes
+  </span>Shm emulation server buffer integration  <span class="nb">yes
+  </span>Vulkan-based server buffer integration <span class="nb">.</span> no
+</code></pre></div></div>
+
+<h2 id="交叉编译">交叉编译</h2>
+
+<p>从 qt6 开始，交叉编译必须要有对应的主机版本；如果要交叉编译 WebEngine，那主机版本也必须要有 WebEngine</p>
+
+<h3 id="sysroot--及工具链">sysroot  及工具链</h3>
+
+<p>请参考 <a href="009.html">交叉编译 Qt5.12</a></p>
+
+<p><strong>arm 工具链没编译成功</strong>，因为Arm 提供的工具链没有配置 multiarch，不会去 aarch64-linux-gnu 目录下找头文件和库文件</p>
+
+<p>这里下载的是 linaro 的 11.3 版本工具链：<a href="https://snapshots.linaro.org/gnu-toolchain/11.3-2022.06-1/aarch64-linux-gnu/gcc-linaro-11.3.1-2022.06-x86_64_aarch64-linux-gnu.tar.xz">下载链接</a></p>
+
+<h3 id="本机安装工具">本机安装工具</h3>
+
+<p>如果是先编译的本机版本，之前安装的工具都够了，不需要额外安装了</p>
+
+<h4 id="qt-库-1">Qt 库</h4>
+
+<p>交叉编译时候，本机不需要额外的工具</p>
+
+<h4 id="qtwebengine-1">QtWebEngine</h4>
+
+<p>如果不需要 QtWebEngine，直接跳过这一章</p>
+
+<p>cmake &gt;= 3.19 <a href="https://cmake.org/download/">https://cmake.org/download/</a></p>
+
+<p>nodejs &gt;= 12 <a href="https://nodejs.org/en/download/prebuilt-binaries">https://nodejs.org/en/download/prebuilt-binaries</a></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip3 <span class="nb">install </span>html5lib
+apt <span class="nb">install </span>libglib2.0-dev ninja-build bison flex gperf libnss3-dev libdbus-1-dev libcups2-dev <span class="nt">-y</span>
+</code></pre></div></div>
+
+<h3 id="编译-1">编译</h3>
+
+<h4 id="工具链文件">工具链文件</h4>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">include_guard</span><span class="p">(</span>GLOBAL<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_SYSTEM_NAME Linux<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_SYSTEM_PROCESSOR aarch64<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_SYSROOT <span class="s2">"/root/ubuntu"</span><span class="p">)</span>
+<span class="nb">list</span><span class="p">(</span>APPEND CMAKE_PREFIX_PATH <span class="s2">"/usr/lib/aarch64-linux-gnu"</span> <span class="s2">"/usr/lib/aarch64-linux-gnu/cmake"</span><span class="p">)</span>
+
+<span class="nb">set</span><span class="p">(</span>CMAKE_C_COMPILER /opt/gcc-linaro-11.3.1-2022.06-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_CXX_COMPILER /opt/gcc-linaro-11.3.1-2022.06-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++<span class="p">)</span>
+
+<span class="nb">set</span><span class="p">(</span>CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY<span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span>CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY<span class="p">)</span>
+
+<span class="nf">add_link_options</span><span class="p">(</span><span class="s2">"LINKER:-rpath-link,/root/ubuntu/usr/lib/aarch64-linux-gnu"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="编译命令">编译命令</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 指定pkg-config查找路径</span>
+<span class="nb">export </span><span class="nv">PKG_CONFIG_PATH</span><span class="o">=</span>/root/ubuntu/usr/lib/pkgconfig:/root/ubuntu/usr/lib/aarch64-linux-gnu/pkgconfig:/root/ubuntu/usr/share/pkgconfig
+
+<span class="nb">mkdir </span>build <span class="o">&amp;&amp;</span> <span class="nb">cd </span>build
+cmake .. <span class="nt">-DCMAKE_INSTALL_PREFIX</span><span class="o">=</span>/opt/qt6.5_aarch64 <span class="nt">-DQT_HOST_PATH</span><span class="o">=</span>/opt/qt6.5 <span class="nt">-DCMAKE_TOOLCHAIN_FILE</span><span class="o">=</span>/root/qt-cross-aarch64.cmake <span class="nt">--log-level</span><span class="o">=</span>STATUS <span class="nt">-DINPUT_opengl</span><span class="o">=</span>es2
+cmake <span class="nt">--build</span> <span class="nb">.</span> <span class="nt">-j</span><span class="si">$(</span><span class="nb">nproc</span><span class="si">)</span>
+cmake <span class="nt">--install</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>如果需要编译 arm 版本的 uic 等工具，需要加上 <code class="highlighter-rouge">-DQT_FORCE_BUILD_TOOLS=ON</code> 选项</p>
+
+<p>6.5.3 有一个 bug，已经合并到主干了：</p>
+
+<p>问题单 <a href="https://bugreports.qt.io/browse/QTBUG-117974">https://bugreports.qt.io/browse/QTBUG-117974</a></p>
+
+<p>解决方案 <a href="https://codereview.qt-project.org/c/qt/qttools/+/510787">https://codereview.qt-project.org/c/qt/qttools/+/510787</a></p>
+
+<p><img src="img/012/02" alt="02" /></p>
+
+<h3 id="qemu">QEMU</h3>
+
+<p>还有一种方案就是在 QEMU 内部按照本机编译流程编译：好处是配置简单，不用配置交叉编译工具链，但是编译速度巨慢（多花了将近20倍时间）</p>
+
+<h2 id="参考链接">参考链接</h2>
+
+<p><a href="https://doc.qt.io/qt-6.5/build-sources.html">https://doc.qt.io/qt-6.5/build-sources.html</a></p>
+
+<p><a href="https://doc.qt.io/qt-6.5/qtwebengine-platform-notes.html">https://doc.qt.io/qt-6.5/qtwebengine-platform-notes.html</a></p>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>

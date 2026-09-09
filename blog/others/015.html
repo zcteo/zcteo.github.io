@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <!-- Primary Meta Tags -->
+  <title>Tailscale 搭建 DERP 节点 闻道</title>
+  <meta name="title" content="Tailscale 搭建 DERP 节点 闻道" />
+  <meta name="description" content="" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="Tailscale 搭建 DERP 节点 闻道" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/blog/others/015" />
+  <meta property="og:title" content="Tailscale 搭建 DERP 节点 闻道" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="/assets/img/header.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="/blog/others/015" />
+  <meta property="twitter:title" content="Tailscale 搭建 DERP 节点 闻道" />
+  <meta property="twitter:description" content="" />
+  <meta property="twitter:image" content="/assets/img/header.png" />
+  
+  <meta property="twitter:creator" content="@zcteo" />
+  <meta property="twitter:site" content="@zcteo" />
+  
+
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="canonical" href="/blog/others/015" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+  
+
+
+<!-- 百度统计 -->
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?3b90f3f4d92bbbb5ded22436c3dfca48";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- 不蒜子统计 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <base target="_blank" />
+</head>
+
+
+<body>
+  <header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="/" target="_self">
+      <img src="/assets/img/title.png" alt="闻道" />
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon" target="_self"></a>
+
+      <div class="menu">
+        
+        
+        
+        <a class="page-link" href="/" target="_self">
+          Home
+        </a>
+        
+        
+        
+        <a class="page-link" href="/blog" target="_self">
+          Blog
+        </a>
+        
+        
+        
+        <a class="page-link" href="/about" target="_self">
+          About
+        </a>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+  <div class="page-content">
+    <div class="wrapper">
+      <article class="post-content">
+        <h1 id="tailscale-搭建-derp-节点">Tailscale 搭建 DERP 节点</h1>
+
+<h2 id="准备">准备</h2>
+
+<p>带公网 ip 的服务器</p>
+
+<h2 id="安装软件">安装软件</h2>
+
+<h3 id="安装-derper">安装 derper</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>golang-go
+go <span class="nb">install </span>tailscale.com/cmd/derper@latest
+<span class="nb">sudo install</span> <span class="nt">-m</span> 755 <span class="s2">"</span><span class="si">$(</span>go <span class="nb">env </span>GOPATH<span class="si">)</span><span class="s2">/bin/derper"</span> /usr/local/bin/derper
+</code></pre></div></div>
+
+<h3 id="安装-tailscale">安装 tailscale</h3>
+
+<p>可选，用于开启 derper 的客户端验证</p>
+
+<p>客户端验证：derper 只服务同一个网络内的机器，没有被其他人滥用的风险</p>
+
+<p>安装</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-fsSL</span> https://tailscale.com/install.sh | sh
+</code></pre></div></div>
+
+<p>启动并加入网络</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>tailscale up
+</code></pre></div></div>
+
+<h2 id="配置-derper">配置 derper</h2>
+
+<h3 id="本机配置">本机配置</h3>
+
+<p>如果域名和服务器已经备案，可以跳过获取证书环节</p>
+
+<p>由于我的域名和服务器没有备案，无法使用80或443端口，需要手动获取域名证书，为了方便，直接用 tailscale 提供的域名和证书</p>
+
+<p>tailscale status 可以看到分配的域名，一般是 <code class="highlighter-rouge">主机名.xxxx.ts.net</code>，后文用 <code class="highlighter-rouge">xxx.ts.net</code> 代替</p>
+
+<p><strong>获取证书</strong></p>
+
+<p>需要在DNS设置页面上开启 <code class="highlighter-rouge">HTTPS Certificates</code>，<a href="https://login.tailscale.com/admin/dns">点击直达</a></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>tailscale cert xxx.ts.net
+</code></pre></div></div>
+
+<p>会在当前目录下生成 xxx.ts.net.crt xxx.ts.net.key 两个文件</p>
+
+<p>将证书文件拷贝到 <code class="highlighter-rouge">/var/lib/derper/certs</code> 目录下</p>
+
+<p><strong>配置 systemd 启动</strong></p>
+
+<p>注意根据自己的情况修改</p>
+
+<p>如果没有安装 tailscaled 服务</p>
+
+<ul>
+  <li>去掉 After 和 Requires的 tailscaled.service</li>
+  <li>去掉 -verify-clients</li>
+</ul>
+
+<p>如果域名和服务器备案了</p>
+
+<ul>
+  <li>去掉 -certmode=manual</li>
+  <li>去掉 -certdir=/var/lib/derper/certs</li>
+  <li>也可去掉 -a=:10443，保持默认使用 443 端口</li>
+</ul>
+
+<p>/etc/systemd/system/derper.service</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[Unit]</span>
+<span class="py">Description</span><span class="p">=</span><span class="s">Tailscale DERP Server</span>
+<span class="py">After</span><span class="p">=</span><span class="s">network-online.target tailscaled.service</span>
+<span class="py">Wants</span><span class="p">=</span><span class="s">network-online.target</span>
+<span class="py">Requires</span><span class="p">=</span><span class="s">tailscaled.service</span>
+
+<span class="nn">[Service]</span>
+<span class="py">Type</span><span class="p">=</span><span class="s">simple</span>
+<span class="py">ExecStart</span><span class="p">=</span><span class="s">/usr/local/bin/derper </span><span class="se">\
+</span>  <span class="s">-hostname=xxx.ts.net </span><span class="se">\
+</span>  <span class="s">-a=:10443 </span><span class="se">\
+</span>  <span class="s">-http-port=-1 </span><span class="se">\
+</span>  <span class="s">-certmode=manual </span><span class="se">\
+</span>  <span class="s">-certdir=/var/lib/derper/certs </span><span class="se">\
+</span>  <span class="s">-stun </span><span class="se">\
+</span>  <span class="s">-stun-port=13478 </span><span class="se">\
+</span>  <span class="s">-verify-clients</span>
+<span class="py">Restart</span><span class="p">=</span><span class="s">always</span>
+<span class="py">RestartSec</span><span class="p">=</span><span class="s">5</span>
+
+<span class="nn">[Install]</span>
+<span class="py">WantedBy</span><span class="p">=</span><span class="s">multi-user.target</span>
+</code></pre></div></div>
+
+<p>启动服务</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl daemon-reload
+<span class="nb">sudo </span>systemctl start derper
+</code></pre></div></div>
+
+<h3 id="服务端配置">服务端配置</h3>
+
+<p>打开 Access controls 界面，<a href="https://login.tailscale.com/admin/acls/file">点击直达</a></p>
+
+<p>顶层 json 中加入如下配置，注意不要破坏原有 json 文件</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"derpMap"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="nl">"OmitDefaultRegions"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"Regions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"900"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"RegionID"</span><span class="p">:</span><span class="w"> </span><span class="mi">900</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"RegionCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cd"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"RegionName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"chengdu"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"Nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"Name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cd1"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"RegionID"</span><span class="p">:</span><span class="w"> </span><span class="mi">900</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"HostName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"xxx.ts.net"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"IPv4"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x.x.x.x"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"IPv6"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"DERPPort"</span><span class="p">:</span><span class="w"> </span><span class="mi">10443</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"STUNPort"</span><span class="p">:</span><span class="w"> </span><span class="mi">13478</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="err">,</span><span class="w">
+</span></code></pre></div></div>
+
+<p>注意：</p>
+<ul>
+  <li>OmitDefaultRegions 为 true 就会去掉官方的节点，不过一般推荐保留，不然自己的节点挂了就没了，保留的话，也会自动连接延迟最低的节点，官方节点都在海外，肯定还是自己的快</li>
+  <li>如果使用的是自己的域名，正常 dns 能解析的话，可以不用写 IPv4</li>
+  <li>自定义 DERP Region ID 通常使用900–999</li>
+  <li>每个 Region ID 必须唯一</li>
+  <li>RegionCode 建议使用 2-3 个字母、唯一的小写名称</li>
+</ul>
+
+<h2 id="禁止-derp-节点访问其他节点">禁止 derp 节点访问其他节点</h2>
+
+<p>可选，这个主要是怕 derp 服务器被攻破的话，家里的设备就全暴露了</p>
+
+<p>在 Access controls 界面建立 tag，<a href="https://login.tailscale.com/admin/acls/visual/tags">点击直达</a></p>
+
+<p>我这里设置了两个：node derp</p>
+
+<p>derp 服务器设置为 derp，其他节点 tag 均设置为 node</p>
+
+<p>修改 access-rules 为如下内容，<a href="https://login.tailscale.com/admin/acls/visual/general-access-rules">点击直达</a></p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"grants"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"src"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"tag:node"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"dst"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"*"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"ip"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="s2">"*"</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="err">,</span><span class="w">
+</span></code></pre></div></div>
+
+<p>tailscale 里面，不存在的规则默认为禁止；上述规则的意思是，node 节点可以访问所有网络；因为默认禁止，非 node 节点无法访问其他内容</p>
+
+<p>需要注意的是 tailscale 的规则没有优先级一说，多个规则是叠加</p>
+
+<h2 id="参考文档">参考文档</h2>
+
+<ol>
+  <li><a href="https://tailscale.com/docs/reference/derp-servers/custom-derp-servers">https://tailscale.com/docs/reference/derp-servers/custom-derp-servers</a></li>
+</ol>
+
+      </article>
+      <div>
+        <hr style="margin-top: 44px; margin-bottom: 18px;">
+        <p><em>由于个人水平有限，文中若有不合理或不正确的地方欢迎指出改正</em></p>
+      </div>
+    </div>
+    <!-- 生成目录 -->
+    <script type="text/javascript" src="/assets/js/article.js"></script>
+    <!-- valine 评论系统 -->
+    
+    <div id="valineComments" class="wrapper" style="margin-top: 44px; margin-bottom: 22px"></div>
+    <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script>
+      new Valine({
+        el: '#valineComments',
+        appId: 'ppzr2mzCo7as90WoayQJL7Pl-MdYXbMMI',
+        appKey: 'N1Yw0XM7bvh2gGQFShapFEQN',
+        placeholder: '欢迎提出您的宝贵意见，正确填写邮箱地址可收到邮件提醒',
+        serverURLs: 'https://ppzr2mzc.api.lncldglobal.com',
+        avatar: 'robohash',
+        enableQQ: true,
+        requiredFields: ['nick']
+      })
+    </script>
+    
+  </div>
+
+  <footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <h4>CONTACT</h4>
+
+        <div class="social-links">
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/email.png" alt="email" />
+
+            <a href="mailto:zcteo.cn@gmail.com" id="email-link"
+               target="_self" >
+              
+              zcteo.cn@gmail.com
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/wechat.png" alt="wechat" />
+
+            <a href="#" id="wechat-link"
+               target="_self" >
+              
+              EricTeo-
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link contact-links">
+
+            
+            <img src="/assets/img/icons/telegram.png" alt="telegram" />
+
+            <a href="https://t.me/zcteo6" id="telegram-link"
+               target="_self" >
+              
+              Telegram
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <h4>FOLLOW</h4>
+
+        <div class="social-links follow-links">
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/github.png" alt="github" />
+            <a href="https://github.com/zcteo">
+              
+              GitHub
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/weibo.png" alt="weibo" />
+            <a href="https://weibo.com/u/6664803739">
+              
+              WeiBo
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/twitter.png" alt="twitter" />
+            <a href="https://twitter.com/zcteo">
+              
+              Twitter
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/facebook.png" alt="facebook" />
+            <a href="https://facebook.com/zcteo">
+              
+              Facebook
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/csdn.png" alt="csdn" />
+            <a href="https://blog.csdn.net/zcteo">
+              
+              CSDN
+              
+            </a>
+          </div>
+
+          
+          <div class="social-link">
+
+            
+            <img src="/assets/img/icons/jianshu.png" alt="jianshu" />
+            <a href="https://www.jianshu.com/u/031f77f21bd3">
+              
+              JianShu
+              
+            </a>
+          </div>
+
+          
+        </div>
+      </div>
+
+      
+    </div>
+
+    
+    <p class="footer-col" id="busuanzi_container_site_pv" style="display:none">
+      本站总访问量 <span id="busuanzi_value_site_pv"></span> 次，本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+      
+      ，本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+      
+    </p>
+
+    <script>
+      var id = setInterval(fixCount, 100)
+      var site_pv = parseInt('100000')
+      var site_uv = parseInt('10000')
+      var page_pv = parseInt('1000')
+      function fixCount() {
+        if ($("#busuanzi_container_site_pv").css("display") != "none") {
+          clearInterval(id);
+          $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + site_pv)
+          $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + site_uv)
+          $("#busuanzi_value_page_pv").html(parseInt($("#busuanzi_value_page_pv").html()) + page_pv)
+        }
+      }
+    </script>
+    
+
+  </div>
+</footer>
+
+<script type="text/javascript" src="/assets/js/backToTop.js"></script>
+<img id="back-to-top" src="/assets/img/back-to-top.png" alt="back-to-top"></img>
+
+
+
+
+
+
+
+
+
+<div id="wechat-widget">
+  <p>
+    Find me on WeChat with the ID <strong>EricTeo-</strong>, or scan my QR code:
+  </p>
+
+  <img src="/assets/img/wechat-qr-code.jpg" alt="QR code" id="qr-code" />
+</div>
+
+
+
+  <script type="text/javascript" src="/assets/js/vendor/retina-1.3.0.min.js"></script>
+<script type="text/javascript" src="/assets/js/vendor/cash-4.1.5.min.js"></script>
+<script type="text/javascript" src="/assets/js/site.js"></script>
+</body>
+
+</html>
